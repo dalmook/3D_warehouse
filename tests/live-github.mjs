@@ -13,7 +13,7 @@ try{
  await request('/git/refs','POST',{ref:'refs/heads/'+branch,sha});created=true;
  browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const p=await browser.newPage({viewport:{width:1440,height:1000}});p.on('dialog',d=>d.accept());
- await p.goto('http://127.0.0.1:4173/');await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');
+ await p.goto(process.env.BASE_URL||'http://127.0.0.1:4173/');await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');
  await p.locator('#projectName').fill('QA 합성 도면 · 생성');await p.locator('#projectName').blur();
  async function open(){await p.locator('#githubBtn').click();await p.locator('#ghOwner').fill('dalmook');await p.locator('#ghRepo').fill('3D_warehouse');await p.locator('#ghBranch').fill(branch);await p.locator('#ghPath').fill('layouts/qa-roundtrip.json');await p.locator('#ghToken').fill(token);await p.locator('#ghConsent').check();}
  async function save(){await p.locator('#ghSave').click();await p.waitForFunction(()=>document.getElementById('ghStatus').textContent.includes('커밋 완료:'),null,{timeout:30000});}

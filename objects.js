@@ -1120,4 +1120,444 @@ function buildLockerRoom(root, data) {
   }
 
   addBox(root, [w * 0.58, h * 0.07, d * 0.18], [0, h * 0.2, -d * 0.05], "#9a7550", { edgeOpacity: 0.18 });
-  [-1, 
+  [-1, 1].forEach((side) => addBox(root, [w * 0.045, h * 0.2, d * 0.14], [side * w * 0.23, h * 0.1, -d * 0.05], darker("#9a7550", 0.55), { edges: false }));
+  addBox(root, [w * 0.7, h * 0.04, d * 0.12], [0, h * 0.13, -d * 0.31], "#6f7e82", { edgeOpacity: 0.16 });
+  [-1, 1].forEach((side) => addBox(root, [w * 0.04, h * 0.12, d * 0.08], [side * w * 0.3, h * 0.06, -d * 0.31], "#3f5055", { edges: false }));
+  addBox(root, [w * 0.23, h * 0.48, 0.025], [w * 0.35, h * 0.55, d * 0.22], "#91c4c7", { transparent: true, opacity: 0.5, doubleSide: true, edgeColor: data.color, edgeOpacity: 0.42 });
+}
+
+function buildPartition(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const frame = data.color;
+  const dark = darker(frame, 0.52);
+  const thickness = Math.max(0.045, d);
+  const panels = Math.max(1, Math.round(w / 1.1));
+  const panelWidth = w / panels;
+  const post = Math.max(0.035, Math.min(0.07, panelWidth * 0.07));
+  for (let index = 0; index <= panels; index += 1) {
+    const x = -w / 2 + index * panelWidth;
+    addBox(root, [post, h, thickness], [x, h / 2, 0], dark, { edges: false, metalness: 0.16 });
+    addBox(root, [Math.min(panelWidth * 0.34, 0.32), h * 0.035, thickness * 3], [x, h * 0.018, 0], dark, { edges: false });
+  }
+  for (let index = 0; index < panels; index += 1) {
+    const x = -w / 2 + (index + 0.5) * panelWidth;
+    addBox(root, [panelWidth - post * 1.5, h * 0.46, thickness * 0.72], [x, h * 0.25, 0], frame, { edgeColor: dark, edgeOpacity: 0.26 });
+    addBox(root, [panelWidth - post * 1.5, h * 0.43, thickness * 0.42], [x, h * 0.68, 0], lighter(frame, 1.45), {
+      transparent: true,
+      opacity: 0.36,
+      doubleSide: true,
+      roughness: 0.2,
+      edgeColor: dark,
+      edgeOpacity: 0.34,
+    });
+  }
+  addBox(root, [w + post, post, thickness], [0, h - post / 2, 0], dark, { edges: false });
+}
+
+function buildPerson(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const uniform = data.color;
+  const trousers = darker(uniform, 0.55);
+  const skin = "#d5a477";
+  const boot = "#202825";
+  const helmet = "#f1c84a";
+  const legHeight = h * 0.39;
+  const torsoHeight = h * 0.34;
+  const torsoY = legHeight + torsoHeight * 0.52;
+
+  [-1, 1].forEach((side) => {
+    addCylinder(root, w * 0.09, legHeight, [side * w * 0.14, legHeight / 2 + h * 0.035, 0], trousers, [0, 0, 0], 14);
+    addBox(root, [w * 0.2, h * 0.07, d * 0.48], [side * w * 0.14, h * 0.035, -d * 0.08], boot, { edgeOpacity: 0.12 });
+  });
+  const torso = addBox(root, [w * 0.72, torsoHeight, d * 0.72], [0, torsoY, 0], uniform, { edgeOpacity: 0.16 });
+  torso.scale.x = 0.88;
+  [-1, 1].forEach((side) => {
+    const arm = addCylinder(root, w * 0.075, torsoHeight * 0.9, [side * w * 0.43, torsoY, 0], uniform, [0, 0, side * 0.12], 14);
+    arm.castShadow = true;
+  });
+  addSphere(root, w * 0.22, [0, h * 0.84, 0], skin, { roughness: 0.78 });
+  const hat = new THREE.Mesh(
+    new THREE.SphereGeometry(w * 0.245, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+    material(helmet, { roughness: 0.62 }),
+  );
+  hat.position.set(0, h * 0.875, 0);
+  hat.castShadow = true;
+  root.add(hat);
+  addBox(root, [w * 0.58, h * 0.025, d * 0.52], [0, h * 0.875, -d * 0.08], helmet, { edges: false });
+  addBox(root, [w * 0.5, torsoHeight * 0.62, 0.018], [0, torsoY + torsoHeight * 0.02, -d * 0.37], "#dff26b", {
+    transparent: true,
+    opacity: 0.9,
+    edges: false,
+  });
+}
+
+function buildComputer(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const frame = darker(data.color, 0.46);
+  const screen = "#75c7d7";
+  addBox(root, [w * 0.76, h * 0.55, d * 0.12], [0, h * 0.68, 0], frame, { edgeOpacity: 0.2 });
+  addBox(root, [w * 0.66, h * 0.43, 0.012], [0, h * 0.69, -d * 0.071], screen, { edges: false, roughness: 0.32 });
+  addBox(root, [w * 0.08, h * 0.27, d * 0.08], [0, h * 0.31, d * 0.02], frame, { edges: false });
+  addBox(root, [w * 0.38, h * 0.055, d * 0.25], [0, h * 0.18, d * 0.03], frame, { edgeOpacity: 0.12 });
+  const keyboard = addBox(root, [w * 0.8, h * 0.055, d * 0.36], [0, h * 0.07, -d * 0.24], lighter(data.color, 1.2), { edgeOpacity: 0.18 });
+  keyboard.rotation.x = -0.08;
+}
+
+function buildCctv(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const dark = "#26332e";
+  addBox(root, [w * 0.22, h * 0.6, d * 0.16], [0, h * 0.52, d * 0.4], darker(data.color, 0.72), { edgeOpacity: 0.16 });
+  const arm = addCylinder(root, w * 0.055, d * 0.52, [0, h * 0.49, d * 0.12], dark, [Math.PI / 2, 0, 0], 12);
+  arm.rotation.x = Math.PI / 2;
+  const body = addBox(root, [w * 0.72, h * 0.58, d * 0.62], [0, h * 0.56, -d * 0.2], data.color, { edgeOpacity: 0.2 });
+  body.rotation.x = -0.16;
+  addCylinder(root, h * 0.18, d * 0.09, [0, h * 0.52, -d * 0.54], dark, [Math.PI / 2, 0, 0], 20);
+  addCylinder(root, h * 0.08, d * 0.095, [0, h * 0.52, -d * 0.59], "#65bdd4", [Math.PI / 2, 0, 0], 20);
+}
+
+function buildExtinguisher(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const bodyHeight = h * 0.72;
+  addCylinder(root, w * 0.35, bodyHeight, [0, bodyHeight / 2 + h * 0.08, 0], data.color, [0, 0, 0], 22);
+  addCylinder(root, w * 0.18, h * 0.12, [0, h * 0.84, 0], darker(data.color, 0.55), [0, 0, 0], 14);
+  addBox(root, [w * 0.55, h * 0.07, d * 0.14], [w * 0.1, h * 0.93, 0], "#202825", { edges: false });
+  addBox(root, [w * 0.4, h * 0.24, 0.012], [0, h * 0.5, -d * 0.36], "#f5eee0", { edgeOpacity: 0.2, castShadow: false });
+  const hose = new THREE.Mesh(
+    new THREE.TorusGeometry(w * 0.34, w * 0.035, 8, 24, Math.PI * 1.45),
+    material("#202825", { roughness: 0.8 }),
+  );
+  hose.position.set(w * 0.22, h * 0.66, 0);
+  hose.rotation.y = Math.PI / 2;
+  root.add(hose);
+}
+
+function buildCone(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  addBox(root, [w, h * 0.08, d], [0, h * 0.04, 0], darker(data.color, 0.72), { edgeOpacity: 0.18 });
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(Math.min(w, d) * 0.37, h * 0.86, 24),
+    material(data.color, { roughness: 0.74 }),
+  );
+  cone.position.y = h * 0.48;
+  cone.castShadow = true;
+  root.add(cone);
+  addCylinder(root, w * 0.23, h * 0.09, [0, h * 0.45, 0], "#f7f4e8", [0, 0, 0], 24);
+}
+
+function buildBarrier(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const dark = "#202825";
+  const post = Math.min(0.1, w * 0.06);
+  [-1, 1].forEach((side) => {
+    addBox(root, [post, h * 0.9, post], [side * (w / 2 - post), h * 0.48, 0], dark, { edges: false });
+    addBox(root, [w * 0.18, h * 0.06, d], [side * (w / 2 - post), h * 0.03, 0], dark, { edgeOpacity: 0.14 });
+  });
+  [0.34, 0.72].forEach((ratio) => addBox(root, [w * 0.9, h * 0.13, d * 0.32], [0, h * ratio, 0], data.color, { edgeOpacity: 0.18 }));
+  for (let x = -w * 0.36; x <= w * 0.36; x += w * 0.18) {
+    const stripe = addBox(root, [w * 0.08, h * 0.135, d * 0.335], [x, h * 0.72, -d * 0.01], dark, { edges: false });
+    stripe.rotation.z = -0.55;
+  }
+}
+
+function buildFirstAid(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  addBox(root, [w, h, d], [0, h / 2, 0], data.color, { edgeOpacity: 0.24 });
+  addBox(root, [w * 0.16, h * 0.58, 0.014], [0, h * 0.53, -d / 2 - 0.008], "#ffffff", { edges: false });
+  addBox(root, [w * 0.58, h * 0.16, 0.015], [0, h * 0.53, -d / 2 - 0.009], "#ffffff", { edges: false });
+  addBox(root, [w * 0.13, h * 0.1, d * 0.18], [w * 0.34, h * 0.52, -d * 0.55], darker(data.color, 0.45), { edges: false });
+}
+
+function buildElectrical(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  addBox(root, [w, h, d], [0, h / 2, 0], data.color, { edgeOpacity: 0.28, metalness: 0.24 });
+  addBox(root, [w * 0.86, h * 0.88, 0.014], [0, h * 0.52, -d / 2 - 0.008], lighter(data.color, 1.08), { edgeOpacity: 0.22 });
+  addBox(root, [w * 0.05, h * 0.16, 0.025], [w * 0.34, h * 0.52, -d / 2 - 0.02], "#202825", { edges: false });
+  ["#e34f49", "#f0c84b", "#45b77b"].forEach((color, index) => addSphere(root, w * 0.035, [-w * 0.25 + index * w * 0.12, h * 0.78, -d / 2 - 0.025], color, { castShadow: false }));
+  const warning = new THREE.Mesh(
+    new THREE.ConeGeometry(w * 0.14, h * 0.22, 3),
+    material("#f0c84b", { roughness: 0.7 }),
+  );
+  warning.position.set(0, h * 0.48, -d / 2 - 0.03);
+  warning.rotation.x = Math.PI / 2;
+  warning.rotation.z = Math.PI;
+  root.add(warning);
+}
+
+function buildTrashbin(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const body = addBox(root, [w * 0.88, h * 0.86, d * 0.88], [0, h * 0.45, 0], data.color, { edgeOpacity: 0.2 });
+  body.scale.x = 0.94;
+  addBox(root, [w, h * 0.12, d], [0, h * 0.94, 0], darker(data.color, 0.66), { edgeOpacity: 0.2 });
+  addBox(root, [w * 0.55, h * 0.08, d * 0.08], [0, h * 1.02, 0], "#28332f", { edges: false });
+  [-1, 1].forEach((side) => addCylinder(root, w * 0.1, d * 0.1, [side * w * 0.36, h * 0.12, d * 0.42], "#202825", [0, 0, Math.PI / 2], 16));
+}
+
+function buildHandtruck(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const dark = darker(data.color, 0.5);
+  [-1, 1].forEach((side) => addBox(root, [w * 0.13, h * 0.07, d * 0.74], [side * w * 0.27, h * 0.11, -d * 0.1], data.color, { edgeOpacity: 0.16 }));
+  addBox(root, [w * 0.76, h * 0.16, d * 0.28], [0, h * 0.2, d * 0.32], data.color, { edgeOpacity: 0.18 });
+  [-1, 1].forEach((side) => addCylinder(root, w * 0.13, w * 0.11, [side * w * 0.39, h * 0.13, d * 0.37], "#202825", [0, 0, Math.PI / 2], 16));
+  const stem = addCylinder(root, w * 0.055, h * 0.68, [0, h * 0.6, d * 0.42], dark, [0.18, 0, 0], 12);
+  stem.rotation.x = 0.18;
+  addBox(root, [w * 0.72, h * 0.08, w * 0.08], [0, h * 0.94, d * 0.5], dark, { edges: false });
+}
+
+function buildPrinter(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const dark = darker(data.color, 0.55);
+  addBox(root, [w, h * 0.72, d], [0, h * 0.39, 0], data.color, { edgeOpacity: 0.23 });
+  const lid = addBox(root, [w * 0.88, h * 0.16, d * 0.72], [0, h * 0.82, d * 0.02], dark, { edgeOpacity: 0.16 });
+  lid.rotation.x = -0.05;
+  addBox(root, [w * 0.68, h * 0.055, d * 0.36], [0, h * 0.16, -d * 0.46], "#e8ece9", { edges: false });
+  addBox(root, [w * 0.22, h * 0.07, 0.014], [w * 0.27, h * 0.72, -d / 2 - 0.01], "#69c6d0", { edges: false });
+}
+
+function buildOfficePrinter(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const dark = darker(data.color, 0.52);
+  const light = lighter(data.color, 1.28);
+  addBox(root, [w, h * 0.68, d * 0.9], [0, h * 0.38, 0], data.color, { edgeOpacity: 0.24 });
+  const lid = addBox(root, [w * 0.91, h * 0.14, d * 0.72], [0, h * 0.83, d * 0.02], light, { edgeOpacity: 0.18 });
+  lid.rotation.x = -0.035;
+  addBox(root, [w * 0.72, h * 0.075, d * 0.34], [0, h * 0.28, -d * 0.43], dark, { edgeOpacity: 0.14 });
+  addBox(root, [w * 0.58, h * 0.025, d * 0.42], [0, h * 0.3, -d * 0.55], "#f1f2ec", { edges: false, castShadow: false });
+  const panel = addBox(root, [w * 0.35, h * 0.1, d * 0.13], [w * 0.24, h * 0.67, -d * 0.42], dark, { edgeOpacity: 0.16 });
+  panel.rotation.x = -0.28;
+  addBox(root, [w * 0.16, h * 0.045, 0.012], [w * 0.24, h * 0.68, -d * 0.493], "#68cad2", { edges: false, roughness: 0.2 });
+  addSphere(root, w * 0.018, [w * 0.39, h * 0.66, -d * 0.5], "#4ee38e", { castShadow: false });
+}
+
+function buildDoor(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const frame = darker(data.color, 0.48);
+  const post = Math.min(0.1, w * 0.1);
+  addBox(root, [post, h, d], [-w / 2 + post / 2, h / 2, 0], frame, { edgeOpacity: 0.18 });
+  addBox(root, [post, h, d], [w / 2 - post / 2, h / 2, 0], frame, { edgeOpacity: 0.18 });
+  addBox(root, [w, post, d], [0, h - post / 2, 0], frame, { edgeOpacity: 0.18 });
+  addBox(root, [w - post * 2.2, h - post * 1.2, d * 0.55], [0, (h - post) / 2, 0], data.color, { edgeOpacity: 0.22 });
+  addBox(root, [w * 0.62, h * 0.28, 0.012], [0, h * 0.63, -d * 0.29], "#83bdc3", { edges: false, transparent: true, opacity: 0.72 });
+  addSphere(root, w * 0.045, [w * 0.32, h * 0.46, -d * 0.34], "#d7bc68", { roughness: 0.38 });
+  addBox(root, [w * 0.54, h * 0.13, 0.035], [0, h * 0.88, -d * 0.36], "#36b97c", { edgeOpacity: 0.14 });
+}
+
+function buildSign(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  const isWarning = data.type === "warning" || data.config?.tone === "warning";
+  const background = isWarning ? "#d9911f" : data.color;
+  const foreground = isWarning ? "#1b211e" : "#ffffff";
+  const accent = isWarning ? "#1b211e" : null;
+  addBox(root, [w, h, d], [0, h / 2, 0], background, { edgeOpacity: 0.28, metalness: 0.08 });
+  [-1, 1].forEach((side) => {
+    const texture = makeTextTexture(data.config?.text, background, foreground, accent);
+    const face = new THREE.Mesh(
+      new THREE.PlaneGeometry(w * 0.93, h * 0.86),
+      new THREE.MeshBasicMaterial({ map: texture, transparent: false, side: THREE.DoubleSide }),
+    );
+    face.position.set(0, h / 2, side * (d / 2 + 0.003));
+    face.rotation.y = side < 0 ? Math.PI : 0;
+    root.add(face);
+  });
+}
+
+function buildTextLabel(root, data) {
+  const { width: w, depth: d, height: h } = data;
+  addBox(root, [w, h, Math.max(0.015, d)], [0, h / 2, 0], "#101713", {
+    transparent: true,
+    opacity: 0.18,
+    edges: false,
+    castShadow: false,
+    receiveShadow: false,
+  });
+  const texture = makeFreeTextTexture(data.config?.text, data.color);
+  const face = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide, depthWrite: false }),
+  );
+  face.position.set(0, h / 2, -d / 2 - 0.004);
+  face.rotation.y = Math.PI;
+  face.renderOrder = 5;
+  root.add(face);
+}
+
+function buildSafety(root, data) {
+  const zone = addBox(root, [data.width, data.height, data.depth], [0, data.height / 2, 0], data.color, {
+    transparent: true,
+    opacity: 0.18,
+    edges: false,
+    castShadow: false,
+  });
+  const border = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(data.width, data.height + 0.012, data.depth)),
+    new THREE.LineDashedMaterial({ color: data.color, dashSize: 0.23, gapSize: 0.13, transparent: true, opacity: 0.9 }),
+  );
+  border.position.y = data.height / 2 + 0.006;
+  border.computeLineDistances();
+  root.add(border);
+  zone.receiveShadow = true;
+}
+
+function buildStack(root, data) {
+  const stack = data.stack;
+  if (!stack) return;
+  const palletData = {
+    width: stack.palletWidth,
+    depth: stack.palletDepth,
+    height: stack.palletHeight ?? 0.14,
+    color: "#9f7248",
+  };
+  buildPallet(root, palletData);
+
+  const count = Math.max(0, Math.round(stack.count));
+  if (!count) return;
+  const bw = stack.boxWidth;
+  const bd = stack.boxDepth;
+  const bh = stack.boxHeight;
+  const rotated = Boolean(stack.rotated);
+  const stepX = rotated ? bd : bw;
+  const stepZ = rotated ? bw : bd;
+  const cols = Math.max(1, Math.floor(stack.palletWidth / stepX + 1e-7));
+  const rows = Math.max(1, Math.floor(stack.palletDepth / stepZ + 1e-7));
+  const geometry = new THREE.BoxGeometry(bw * 0.975, bh * 0.975, bd * 0.975);
+  const mesh = new THREE.InstancedMesh(
+    geometry,
+    material(data.color, { roughness: 0.82 }),
+    count,
+  );
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  const dummy = new THREE.Object3D();
+  const palletHeight = stack.palletHeight ?? 0.14;
+  const usedWidth = cols * stepX;
+  const usedDepth = rows * stepZ;
+
+  for (let index = 0; index < count; index += 1) {
+    const layer = Math.floor(index / (cols * rows));
+    const position = index % (cols * rows);
+    const row = Math.floor(position / cols);
+    const col = position % cols;
+    dummy.position.set(
+      -usedWidth / 2 + stepX * (col + 0.5),
+      palletHeight + bh * (layer + 0.5),
+      -usedDepth / 2 + stepZ * (row + 0.5),
+    );
+    dummy.rotation.set(0, rotated ? Math.PI / 2 : 0, 0);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(index, dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  root.add(mesh);
+
+  const straps = stack.layers > 1;
+  if (straps) {
+    const loadHeight = stack.layers * bh;
+    const strapColor = "#283d34";
+    addBox(root, [Math.min(0.035, stack.palletWidth * 0.03), loadHeight, stack.palletDepth * 1.015], [0, palletHeight + loadHeight / 2, 0], strapColor, {
+      transparent: true,
+      opacity: 0.56,
+      edges: false,
+      castShadow: false,
+    });
+  }
+}
+
+export function disposeObject3D(object) {
+  object.traverse((child) => {
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) {
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      materials.forEach((item) => {
+        item?.map?.dispose?.();
+        item?.dispose?.();
+      });
+    }
+  });
+}
+
+export function rebuildObjectVisual(root) {
+  const children = [...root.children];
+  children.forEach((child) => {
+    root.remove(child);
+    disposeObject3D(child);
+  });
+  const data = root.userData.data;
+  switch (data.type) {
+    case "rack": buildRack(root, data); break;
+    case "boxrack": buildBoxRack(root, data); break;
+    case "shelf": buildShelf(root, data); break;
+    case "conveyor": buildConveyor(root, data); break;
+    case "pallet": buildPallet(root, data); break;
+    case "box": buildBox(root, data); break;
+    case "forklift": buildForklift(root, data); break;
+    case "dock": buildDock(root, data); break;
+    case "worktable": buildWorktable(root, data); break;
+    case "cleanbooth": buildCleanBooth(root, data); break;
+    case "chair": buildChair(root, data); break;
+    case "tapingmachine": buildTapingMachine(root, data); break;
+    case "volumechecker": buildVolumeChecker(root, data); break;
+    case "ers": buildErs(root, data); break;
+    case "heavyscale": buildHeavyScale(root, data); break;
+    case "barcodescanner": buildBarcodeScanner(root, data); break;
+    case "breakroom": buildBreakRoom(root, data); break;
+    case "office": buildOffice(root, data); break;
+    case "lockerroom": buildLockerRoom(root, data); break;
+    case "partition": buildPartition(root, data); break;
+    case "textlabel": buildTextLabel(root, data); break;
+    case "person": buildPerson(root, data); break;
+    case "computer": buildComputer(root, data); break;
+    case "cctv": buildCctv(root, data); break;
+    case "extinguisher": buildExtinguisher(root, data); break;
+    case "cone": buildCone(root, data); break;
+    case "barrier": buildBarrier(root, data); break;
+    case "firstaid": buildFirstAid(root, data); break;
+    case "electrical": buildElectrical(root, data); break;
+    case "trashbin": buildTrashbin(root, data); break;
+    case "handtruck": buildHandtruck(root, data); break;
+    case "printer": buildPrinter(root, data); break;
+    case "officeprinter": buildOfficePrinter(root, data); break;
+    case "door": buildDoor(root, data); break;
+    case "sign": buildSign(root, data); break;
+    case "warning": buildSign(root, data); break;
+    case "safety": buildSafety(root, data); break;
+    case "stack": buildStack(root, data); break;
+    default: buildBox(root, data);
+  }
+}
+
+export function calculateStackLayout(values) {
+  const palletWidth = Math.max(0.01, Number(values.palletWidth));
+  const palletDepth = Math.max(0.01, Number(values.palletDepth));
+  const boxWidth = Math.max(0.001, Number(values.boxWidth));
+  const boxDepth = Math.max(0.001, Number(values.boxDepth));
+  const boxHeight = Math.max(0.001, Number(values.boxHeight));
+  const requestedCount = Math.max(1, Math.round(Number(values.count)));
+  const maxHeight = Math.max(0.01, Number(values.maxHeight));
+  const palletHeight = 0.14;
+  const normal = Math.floor(palletWidth / boxWidth + 1e-7) * Math.floor(palletDepth / boxDepth + 1e-7);
+  const rotatedCount = Math.floor(palletWidth / boxDepth + 1e-7) * Math.floor(palletDepth / boxWidth + 1e-7);
+  const rotated = rotatedCount > normal;
+  const perLayer = Math.max(normal, rotatedCount);
+  const maxLayers = Math.max(0, Math.floor((maxHeight - palletHeight) / boxHeight + 1e-7));
+  const possibleCount = perLayer * maxLayers;
+  const count = Math.min(requestedCount, possibleCount);
+  const layers = perLayer > 0 ? Math.ceil(count / perLayer) : 0;
+  const totalHeight = palletHeight + layers * boxHeight;
+  return {
+    palletWidth,
+    palletDepth,
+    palletHeight,
+    maxHeight,
+    boxWidth,
+    boxDepth,
+    boxHeight,
+    requestedCount,
+    count,
+    perLayer,
+    layers,
+    maxLayers,
+    totalHeight,
+    rotated,
+    utilization: requestedCount ? count / requestedCount : 0,
+    valid: perLayer > 0 && maxLayers > 0 && count > 0,
+  };
+}
