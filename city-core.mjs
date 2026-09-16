@@ -37,7 +37,7 @@ export function normalize(raw) {
     if(!o || typeof o!=='object') throw Error('잘못된 설비 데이터입니다.');
     const type=String(o.type || 'box').slice(0,40), def=Object.hasOwn(CATALOG,type) ? CATALOG[type] : CATALOG.box;
     const id=typeof o.id==='string'&&!seen.has(o.id)?o.id:uid(); seen.add(id);
-    const config=copy(o.config || def.config || {});
+    const config=copy(o.config && typeof o.config==='object' && !Array.isArray(o.config) ? o.config : def.config || {});
     for(const k of ['bays','levels','palletsPerLevel','boxesPerCell']) if(k in config) config[k]=clamp(Math.round(num(config[k],1)),1,20);
     return {...copy(o),id,type,name:String(o.name || def.name).slice(0,80),
       x:clamp(num(o.x,warehouse.width/2),0,warehouse.width),y:clamp(num(o.y,warehouse.depth/2),0,warehouse.depth),
@@ -78,6 +78,7 @@ export function placementError(o,layout) {
 }
 export function blocked(x,y,layout,radius=.3) {
   const w=layout.warehouse;
+  if(!Number.isFinite(x)||!Number.isFinite(y))return true;
   if(x<radius||y<radius||x>w.width-radius||y>w.depth-radius) return true;
   return layout.objects.some(o=>{
     if(!solid(o)||o.z>=1.8) return false;
