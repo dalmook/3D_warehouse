@@ -1,8 +1,8 @@
-name: Warehouse City browser QA
+name: Warehouse City browser QA and Pages
 on:
   push:
     branches: [main, fix/city-release-qa]
-  pull_request:
+    paths-ignore: ['layouts/**', '**.md']
   workflow_dispatch:
 permissions:
   contents: read
@@ -13,49 +13,66 @@ jobs:
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    permissions:
+      contents: write
+      pages: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Unit tests
-        run: node --test city-core.test.mjs
-      - name: Install browser test runner
+      - name: Generate release source once on QA branch
+        if: github.ref == 'refs/heads/fix/city-release-qa'
+        run: |
+          if [ -f .release/source.tar.xz ]; then
+            tar -xJf .release/source.tar.xz
+          fi
+          python3 scripts/release-city.py
+      - name: Core and syntax tests
+        run: |
+          node --test city-core.test.mjs tests/core-release.test.mjs
+          node --check city-app.mjs
+          node --input-type=module --check < vendor/three.module.js
+          node --input-type=module --check < vendor/three.core.min.js
+          node --input-type=module --check < vendor/OrbitControls.js
+      - name: Install Chromium test runner
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Real WebGL browser checks
+      - name: Real desktop and mobile browser scenarios
         run: |
           mkdir -p qa-evidence
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/city-http.log 2>&1 &
-          if [ -f tests/browser.mjs ]; then
-            node tests/browser.mjs
-          else
-            node --input-type=module <<'JS'
-            import {chromium} from 'playwright';
-            import fs from 'node:fs';
-            import assert from 'node:assert/strict';
-            const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
-            const page=await browser.newPage({viewport:{width:1440,height:1000}});
-            const errors=[];page.on('pageerror',e=>errors.push(e.message));
-            await page.goto('http://127.0.0.1:4173/city.html');
-            await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
-            await page.screenshot({path:'qa-evidence/desktop-design.png'});
-            await page.locator('[data-mode="sim"]').click();
-            await page.locator('#playBtn').click();
-            await page.waitForFunction(()=>window.__warehouseCity.getSimulation()?.distance>1);
-            await page.screenshot({path:'qa-evidence/desktop-simulation.png'});
-            await page.locator('[data-mode="walk"]').click();
-            await page.screenshot({path:'qa-evidence/desktop-walk.png'});
-            assert.deepEqual(errors,[]);
-            fs.writeFileSync('qa-evidence/baseline.json',JSON.stringify({passed:true,errors,layout:await page.evaluate(()=>window.__warehouseCity.getLayout())},null,2));
-            await browser.close();
-            JS
+          node tests/browser.mjs
+      - name: Real GitHub create, update and load with temporary-branch cleanup
+        env:
+          QA_GITHUB_TOKEN: ${{ github.token }}
+        run: node tests/live-github.mjs
+      - name: Record Pages configuration without exposing credentials
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p qa-evidence
+          gh api repos/dalmook/3D_warehouse/pages > qa-evidence/pages-status.json 2> qa-evidence/pages-status-error.txt || true
+      - name: Commit tested generated application on QA branch only
+        if: success() && github.ref == 'refs/heads/fix/city-release-qa'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html classic.html city.html city-app.mjs city.css city-core.mjs scripts tests .github/workflows/city-ci.yml
+          if [ -f .release/source.tar.xz ]; then
+            git rm .release/source.tar.xz
           fi
-      - name: Package source snapshot
+          if ! git diff --cached --quiet; then
+            git commit -m 'release: promote browser-verified Warehouse City 9.1 and retain classic editor'
+            git push origin HEAD:fix/city-release-qa
+          fi
+      - name: Package source snapshot and test evidence
         if: always()
         run: |
           mkdir -p qa-evidence
+          git rev-parse HEAD > qa-evidence/tested-commit.txt
           tar -czf /tmp/city-source.tar.gz --exclude=.git --exclude=node_modules --exclude=qa-evidence .
           cp /tmp/city-source.tar.gz qa-evidence/
           cp /tmp/city-http.log qa-evidence/ 2>/dev/null || true
@@ -63,5 +80,50 @@ jobs:
         if: always()
         with:
           name: warehouse-city-qa
+          path: qa-evidence/
+          retention-days: 14
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: browser
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Assemble static website only
+        run: |
+          mkdir _site
+          cp index.html city.html classic.html city-app.mjs city-core.mjs city.css app.js boot.js objects.js styles.css .nojekyll _site/
+          cp -r vendor licenses layouts _site/
+          printf '{"commit":"%s","version":"9.1.0"}\n' "$GITHUB_SHA" > _site/release.json
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install deployed-site browser verifier
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify the published build and run browser scenarios on Pages
+        env:
+          BASE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          node tests/deployed.mjs
+          node tests/browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warehouse-city-deployed-qa
           path: qa-evidence/
           retention-days: 14
