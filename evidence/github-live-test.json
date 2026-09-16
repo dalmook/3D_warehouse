@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-09-16T03:51:11.108372+00:00",
+  "method": "Authenticated GitHub CLI Contents API, separate from browser UI mock tests",
+  "repo": "dalmook/3D_warehouse",
+  "checks": [
+    "Create UTF-8 Korean JSON in isolated branch",
+    "Independent GET and exact UTF-8 decode equality",
+    "Update with original SHA and verify changed blob",
+    "Actual stale-SHA conflict rejected; no blind overwrite"
+  ],
+  "status": "passed",
+  "blobSHA": "0531a477f0d80e6abbd9e7fb91f743b6db62f834",
+  "temporaryBranchRemoved": true
+}

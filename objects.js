@@ -1,3 +1,5 @@
+import { calculateStackLayout } from './studio-stack.js';
+export { calculateStackLayout };
 import * as THREE from "three";
 
 export const ASSET_DEFINITIONS = {
@@ -1120,4 +1122,92 @@ function buildLockerRoom(root, data) {
   }
 
   addBox(root, [w * 0.58, h * 0.07, d * 0.18], [0, h * 0.2, -d * 0.05], "#9a7550", { edgeOpacity: 0.18 });
-  [-1, 
+  [-1, 1].forEach(side => addBox(root, [0.08,h*0.2,d*0.15], [side*w*0.22,h*0.1,-d*0.05], "#455565"));
+}
+
+// Restored model registry: the previous committed file ended halfway through buildLockerRoom.
+function buildPerson(root, data) {
+  const s=data.height/1.72;
+  const person=new THREE.Group(); root.add(person); person.scale.set(s,s,s);
+  addBox(person,[.42,.55,.26],[0,1.05,0],data.color);
+  addBox(person,[.44,.25,.28],[0,1.14,0],"#f2cc45");
+  addSphere(person,.15,[0,1.5,0],"#e2af85");
+  addCylinder(person,.18,.10,[0,1.66,0],"#f5c447");
+  [-1,1].forEach(side=>{
+    addBox(person,[.14,.65,.17],[side*.115,.4,0],"#344656");
+    addBox(person,[.13,.48,.15],[side*.3,1.01,0],data.color);
+    addBox(person,[.17,.12,.3],[side*.115,.06,-.045],"#243140");
+  });
+}
+function buildPartition(root, d) {
+  addBox(root,[d.width,d.height*.92,d.depth],[0,d.height*.52,0],d.color);
+  [-1,1].forEach(s=>addBox(root,[.09,d.height,.25],[s*(d.width/2-.05),d.height/2,0],"#647689"));
+}
+function buildSign(root,d) {
+  const mesh=addBox(root,[d.width,d.height,d.depth],[0,d.height/2,0],d.color);
+  const texture=d.type==='textlabel'?makeFreeTextTexture(d.config?.text||d.name,d.color):makeTextTexture(d.config?.text||d.name,d.color);
+  const front=new THREE.Mesh(new THREE.PlaneGeometry(d.width*.94,d.height*.9),new THREE.MeshBasicMaterial({map:texture,transparent:true,side:THREE.DoubleSide}));
+  front.position.set(0,d.height/2,d.depth/2+.012);root.add(front);
+}
+function buildSafety(root,d) {
+  const plane=new THREE.Mesh(new THREE.BoxGeometry(d.width,.025,d.depth),material(d.color,{transparent:true,opacity:.20}));
+  plane.position.y=.018;root.add(plane);
+  const t=.07;
+  [-1,1].forEach(s=>{
+    addBox(root,[d.width,.03,t],[0,.035,s*d.depth/2],d.color,{edges:false});
+    addBox(root,[t,.03,d.depth],[s*d.width/2,.035,0],d.color,{edges:false});
+  });
+}
+function buildSmallAsset(root,d) {
+  const {width:w,depth:l,height:h,color:c,type}=d;
+  if(type==='person'){buildPerson(root,d);return;}
+  if(['sign','warning','textlabel'].includes(type)){buildSign(root,d);return;}
+  if(type==='partition'||type==='barrier'){buildPartition(root,d);return;}
+  if(type==='safety'){buildSafety(root,d);return;}
+  if(type==='door'){
+    [-1,1].forEach(s=>addBox(root,[.1,h,l],[s*w*.46,h/2,0],c));
+    addBox(root,[w,.12,l],[0,h-.06,0],c);return;
+  }
+  if(type==='computer'){buildComputer(root,d);return;}
+  if(type==='extinguisher'||type==='trashbin'){
+    addCylinder(root,w*.42,h*.8,[0,h*.4,0],c);
+    addBox(root,[w*.65,h*.12,l*.7],[0,h*.89,0],"#485766");return;
+  }
+  if(type==='cone'){
+    addBox(root,[w,.07,l],[0,.035,0],"#384955");
+    const cone=new THREE.Mesh(new THREE.ConeGeometry(w*.4,h*.9,12),material(c));cone.position.y=h*.5;root.add(cone);return;
+  }
+  if(type==='cctv'){
+    addBox(root,[w*.8,h*.7,l],[0,h*.6,0],c);addBox(root,[w*.65,h*.5,.03],[0,h*.6,l*.51],"#142e44");return;
+  }
+  if(type==='handtruck'){
+    addBox(root,[w,.13,l*.72],[0,.18,-l*.1],c);
+    addBox(root,[.08,h,.09],[0,h*.5,l*.38],c);addBox(root,[w*.7,.08,.08],[0,h,l*.38],"#263848");return;
+  }
+  addBox(root,[w,h,l],[0,h/2,0],c);
+  addBox(root,[w*.6,h*.25,.02],[0,h*.62,l/2+.015],type==='firstaid'?"#ecfff4":"#243e52");
+}
+
+function buildStack(root,d){
+  const saved=d.stack||{},cfg={...d.config,...saved},layout=calculateStackLayout({...cfg,palletWidth:d.width,palletDepth:d.depth,maxHeight:saved.maxHeight||d.height,count:saved.count||cfg.count||32});
+  buildPallet(root,{...d,height:layout.palletHeight||.14});
+  for(const p of layout.positions){const m=addBox(root,[layout.boxWidth,layout.boxHeight,layout.boxDepth],[p.x,p.y,p.z],d.color);m.rotation.y=p.rotation;}
+}
+function buildComputer(root,d){
+  const {width:w,depth:l,height:h}=d;
+  addBox(root,[w*.18,h*.38,l*.3],[0,h*.2,0],"#4b5c67");
+  addBox(root,[w,h*.65,l*.13],[0,h*.67,l*.08],"#394b59");
+  addBox(root,[w*.9,h*.53,.008],[0,h*.67,l*.15],"#83b7d0",{edges:false});
+  addBox(root,[w*.8,.03,l*.32],[0,.025,l*.4],"#c8d2d6");
+}
+
+export function disposeObject3D(root){
+  const textures=new Set();root.traverse(o=>{o.geometry?.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){if(!m)continue;for(const v of Object.values(m))if(v?.isTexture)textures.add(v);m.dispose();}});textures.forEach(t=>t.dispose());
+}
+export function rebuildObjectVisual(root){
+  while(root.children.length){const child=root.children[0];root.remove(child);disposeObject3D(child);}
+  const d=root.userData.data;
+  const builders={rack:buildRack,boxrack:buildBoxRack,shelf:buildShelf,conveyor:buildConveyor,pallet:buildPallet,box:buildBox,forklift:buildForklift,dock:buildDock,worktable:buildWorktable,cleanbooth:buildCleanBooth,chair:buildChair,tapingmachine:buildTapingMachine,volumechecker:buildVolumeChecker,ers:buildErs,heavyscale:buildHeavyScale,barcodescanner:buildBarcodeScanner,breakroom:buildBreakRoom,office:buildOffice,lockerroom:buildLockerRoom,stack:buildStack};
+  (builders[d.type]||buildSmallAsset)(root,d);
+  root.traverse(o=>{if(o.isMesh){o.castShadow=d.type!=='safety';o.receiveShadow=true;}});
+}
