@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 10,
+  "app": "Warehouse Play Studio",
+  "projectName": "체험용 물류센터",
+  "warehouse": {
+    "width": 36,
+    "depth": 28,
+    "height": 9
+  },
+  "objects": [
+    {
+      "id": "fe6e923a-f738-47ba-9b3e-0d58880a3e53",
+      "type": "rack",
+      "name": "A-1 보관 랙",
+      "x": 12.5,
+      "y": 3.6,
+      "z": 0,
+      "width": 8,
+      "depth": 1.2,
+      "height": 6.4,
+      "rotation": 0,
+      "color": "#5084bc",
+      "locked": false,
+      "config": {
+        "bays": 4,
+        "levels": 4,
+        "palletsPerLevel": 2
+      }
+    },
+    {
+      "id": "8f2f0a7f-a09b-49ef-a8a4-f85bbfda5706",
+      "type": "rack",
+      "name": "B-1 보관 랙",
+      "x": 23.5,
+      "y": 3.6,
+      "z": 0,
+      "width": 8,
+      "depth": 1.2,
+      "height": 6.4,
+      "rotation": 0,
+      "color": "#6b9eaa",
+      "locked": false,
+      "config": {
+        "bays": 4,
+        "levels": 4,
+        "palletsPerLevel": 2
+      }
+    },
+    {
+      "id": "ddcc761e-2323-4856-bc19-8c84241c316a",
+      "type": "rack",
+      "name": "A-2 보관 랙",
+      "x": 12.5,
+      "y": 7.800000000000001,
+      "z": 0,
+      "width": 8,
+      "depth": 1.2,
+      "height": 6.4,
+      "rotation": 0,
+      "color": "#5084bc",
+      "locked": false,
+      "config": {
+        "bays": 4,
+        "levels": 4,
+        "palletsPerLevel": 2
+      }
+    },
+    {
+      "id": "f931b2aa-470e-41ab-a27f-abdb2de01b79",
+      "type": "rack",
+      "name": "B-2 보관 랙",
+      "x": 23.5,
+      "y": 7.800000000000001,
+      "z": 0,
+      "width": 8,
+      "depth": 1.2,
+      "height": 6.4,
+      "rotation": 0,
+      "color": "#6b9eaa",
+      "locked": false,
+      "config": {
+        "bays": 4,
+        "levels": 4,
+        "palletsPerLevel": 2
+      }
+    },
+    {
+      "id": "d3eab8ab-26aa-4733-9caa-c204615a212f",
+      "type": "rack",
+      "name": "A-3 보관 랙",
+      "x": 12.5,
+      "y": 12,
+      "z": 0,
+      "width": 8,
+      "depth": 1.2,
+      "height": 6.4,
+      "rotation": 0,
+      "color": "#5084bc",
+      "locked": false,
+      "config": {
+        "bays": 4,
+        "levels": 4,
+        "palletsPerLevel": 2
+      }
+    },
+    {
+      "id": "07a32070-0247-4eb6-a053-0d12f8cd156a",
+      "type": "rack",
+      "name": "B-3 보관 랙",
+      "x": 23.5,
+      "y": 12,
+      "z": 0,
+      "width": 8,
+      "depth": 1.2,
+      "height": 6.4,
+      "rotation": 0,
+      "color": "#6b9eaa",
+      "locked": false,
+      "config": {
+        "bays": 4,
+        "levels": 4,
+        "palletsPerLevel": 2
+      }
+    },
+    {
+      "id": "961d6492-dafa-4252-8e03-8bf94ab26e09",
+      "type": "safety",
+      "name": "입고 구역",
+      "x": 4,
+      "y": 25,
+      "z": 0,
+      "width": 6,
+      "depth": 4,
+      "height": 0.025,
+      "rotation": 0,
+      "color": "#e8ac45",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "1e429ba0-4508-4ff9-acac-1d183904dc7c",
+      "type": "safety",
+      "name": "출고 구역",
+      "x": 32,
+      "y": 25,
+      "z": 0,
+      "width": 6,
+      "depth": 4,
+      "height": 0.025,
+      "rotation": 0,
+      "color": "#5794d5",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "34efc862-436c-4c5e-a030-3bc99c865b25",
+      "type": "safety",
+      "name": "검수·포장 구역",
+      "x": 18,
+      "y": 22,
+      "z": 0,
+      "width": 7,
+      "depth": 4,
+      "height": 0.025,
+      "rotation": 0,
+      "color": "#55a394",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "b8635ce3-0684-4d79-a802-86740d6bfa07",
+      "type": "dock",
+      "name": "입고 도크",
+      "x": 3,
+      "y": 26.5,
+      "z": 0,
+      "width": 3,
+      "depth": 1.4,
+      "height": 3.4,
+      "rotation": 180,
+      "color": "#66807a",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "632dfb5f-cba4-4c14-a76a-1424cc7563b0",
+      "type": "dock",
+      "name": "출고 도크",
+      "x": 33,
+      "y": 26.5,
+      "z": 0,
+      "width": 3,
+      "depth": 1.4,
+      "height": 3.4,
+      "rotation": 180,
+      "color": "#66807a",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "94e3224d-517c-4637-aa63-6088fcd50cdb",
+      "type": "worktable",
+      "name": "검수·포장 작업대",
+      "x": 16.5,
+      "y": 22,
+      "z": 0,
+      "width": 2,
+      "depth": 0.9,
+      "height": 0.9,
+      "rotation": 0,
+      "color": "#8f79d6",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "48d98103-9eef-4c83-ac74-9f26206b5382",
+      "type": "worktable",
+      "name": "라벨 작업대",
+      "x": 19.5,
+      "y": 22,
+      "z": 0,
+      "width": 2,
+      "depth": 0.9,
+      "height": 0.9,
+      "rotation": 0,
+      "color": "#8f79d6",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "3c2957fb-4e63-41c7-9d0b-76577848dbc2",
+      "type": "conveyor",
+      "name": "출고 컨베이어",
+      "x": 18,
+      "y": 19,
+      "z": 0,
+      "width": 5,
+      "depth": 0.9,
+      "height": 0.8,
+      "rotation": 0,
+      "color": "#589dea",
+      "locked": false,
+      "config": {}
+    },
+    {
+      "id": "69e773a0-7d6f-475f-87df-27fe0a9b21c8",
+      "type": "pallet",
+      "name": "팔레트",
+      "x": 4,
+      "y": 22.5,
+      "z": 0,
+      "width": 1.2,
+      "depth": 1,
+      "height": 0.14,
+      "rotation": 0,
+      "color": "#a97a4c",
+      "locked": false,
+      "config": {
+        "boxWidth": 0.4,
+        "boxDepth": 0.3,
+        "boxHeight": 0.25,
+        "maxStackHeight": 1.8
+      }
+    },
+    {
+      "id": "ea0aa170-8ab9-4f75-9716-bf175b9ebc90",
+      "type": "forklift",
+      "name": "지게차",
+      "x": 33,
+      "y": 21,
+      "z": 0,
+      "width": 1.2,
+      "depth": 2.4,
+      "height": 2.2,
+      "rotation": 90,
+      "color": "#f2b84f",
+      "locked": false,
+      "config": {}
+    }
+  ],
+  "simulation": {
+    "workers": 6,
+    "speed": 1,
+    "stations": [
+      {
+        "label": "입고",
+        "x": 5.5,
+        "y": 24.5
+      },
+      {
+        "label": "보관·피킹",
+        "x": 12.5,
+        "y": 5.7
+      },
+      {
+        "label": "검수·포장",
+        "x": 18,
+        "y": 23.6
+      },
+      {
+        "label": "출고",
+        "x": 30.5,
+        "y": 24.5
+      }
+    ]
+  }
+}

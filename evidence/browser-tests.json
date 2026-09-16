@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-09-16T03:53:16.205Z",
+  "url": "http://127.0.0.1:4178/",
+  "results": [
+    {
+      "name": "desktop: real WebGL scene loads, 38 asset choices and no JavaScript/asset errors",
+      "status": "passed",
+      "ms": 2464
+    },
+    {
+      "name": "editor: place, rotate, duplicate, delete, undo and redo via actual controls",
+      "status": "passed",
+      "ms": 4398
+    },
+    {
+      "name": "editor: actual pointer drag, valid inspector apply and invalid numeric rejection",
+      "status": "passed",
+      "ms": 2735
+    },
+    {
+      "name": "local draft survives reload and malicious JSON does not replace work",
+      "status": "passed",
+      "ms": 1387
+    },
+    {
+      "name": "wizard: preset build, undo restoration and impossible-layout rejection",
+      "status": "passed",
+      "ms": 3247
+    },
+    {
+      "name": "simulation: real playback movement, pause, deterministic full cycles, reset",
+      "status": "passed",
+      "ms": 4114
+    },
+    {
+      "name": "simulation: change workflow waypoint from sidebar by clicking the floor",
+      "status": "passed",
+      "ms": 275
+    },
+    {
+      "name": "walk: real WASD movement, pointer look, thin-wall boundary collision and exit",
+      "status": "passed",
+      "ms": 3627
+    },
+    {
+      "name": "GitHub UI: mocked UTF8 creation, updated SHA, conflict preservation, memory-only token",
+      "status": "passed",
+      "ms": 4810
+    },
+    {
+      "name": "legacy schema7 imports with all 23 objects and preserved precision editor opens",
+      "status": "passed",
+      "ms": 3172
+    },
+    {
+      "name": "1280×720 desktop: stage and controls stay within viewport",
+      "status": "passed",
+      "ms": 1554
+    },
+    {
+      "name": "mobile 390×844: palette, wizard modal and touch first-person controls",
+      "status": "passed",
+      "ms": 10592
+    },
+    {
+      "name": "shared public visitor: token-free view only and own local draft is not overwritten",
+      "status": "passed",
+      "ms": 7341
+    }
+  ],
+  "uncaughtErrors": [],
+  "failedAssets": [],
+  "note": "GitHub UI writes mocked; deterministic simulation time and boundary spawn use explicit test hooks; browser WebGL, placement, controls and input are real."
+}

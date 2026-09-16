@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: default and three wizard presets have in-bounds non-overlapping solid objects
+ok 1 - default and three wizard presets have in-bounds non-overlapping solid objects
+  ---
+  duration_ms: 9.422
+  type: 'test'
+  ...
+# Subtest: impossible wizard parameters rejected rather than clipping
+ok 2 - impossible wizard parameters rejected rather than clipping
+  ---
+  duration_ms: 0.2225
+  type: 'test'
+  ...
+# Subtest: legacy committed schema7 project migrates without losing object count or IDs
+ok 3 - legacy committed schema7 project migrates without losing object count or IDs
+  ---
+  duration_ms: 2.5793
+  type: 'test'
+  ...
+# Subtest: project roundtrip keeps dimensions, config, names and simulation
+ok 4 - project roundtrip keeps dimensions, config, names and simulation
+  ---
+  duration_ms: 0.482199
+  type: 'test'
+  ...
+# Subtest: invalid finite/range/schema/count/duplicate IDs are rejected without mutating input
+ok 5 - invalid finite/range/schema/count/duplicate IDs are rejected without mutating input
+  ---
+  duration_ms: 1.8188
+  type: 'test'
+  ...
+# Subtest: untrusted types/config text cannot introduce executable HTML or prototypes
+ok 6 - untrusted types/config text cannot introduce executable HTML or prototypes
+  ---
+  duration_ms: 0.4704
+  type: 'test'
+  ...
+# Subtest: 1001 objects and bad waypoint count fail before load
+ok 7 - 1001 objects and bad waypoint count fail before load
+  ---
+  duration_ms: 1.6428
+  type: 'test'
+  ...
+# Subtest: rotated footprint matches positive Three.js Y rotation
+ok 8 - rotated footprint matches positive Three.js Y rotation
+  ---
+  duration_ms: 0.2644
+  type: 'test'
+  ...
+# Subtest: SAT finds overlap, allows touch and separated vertical boxes
+ok 9 - SAT finds overlap, allows touch and separated vertical boxes
+  ---
+  duration_ms: 0.3284
+  type: 'test'
+  ...
+# Subtest: collision keeps walkers inside boundaries with sliding
+ok 10 - collision keeps walkers inside boundaries with sliding
+  ---
+  duration_ms: 0.4943
+  type: 'test'
+  ...
+# Subtest: movement substeps prevent tunneling through thin walls
+ok 11 - movement substeps prevent tunneling through thin walls
+  ---
+  duration_ms: 0.5082
+  type: 'test'
+  ...
+# Subtest: A* path routes around solid equipment, every segment is collision free
+ok 12 - A* path routes around solid equipment, every segment is collision free
+  ---
+  duration_ms: 2.9966
+  type: 'test'
+  ...
+# Subtest: full separating wall makes route unavailable; no diagonal corner cutting
+ok 13 - full separating wall makes route unavailable; no diagonal corner cutting
+  ---
+  duration_ms: 1.9422
+  type: 'test'
+  ...
+# Subtest: narrow aisle smaller than pedestrian diameter is not traversable
+ok 14 - narrow aisle smaller than pedestrian diameter is not traversable
+  ---
+  duration_ms: 0.1585
+  type: 'test'
+  ...
+# Subtest: simulation actually completes workflow, pauses exactly and resets metrics
+ok 15 - simulation actually completes workflow, pauses exactly and resets metrics
+  ---
+  duration_ms: 97.416196
+  type: 'test'
+  ...
+# Subtest: simulation never walks through equipment, including rotated geometry
+ok 16 - simulation never walks through equipment, including rotated geometry
+  ---
+  duration_ms: 6.8961
+  type: 'test'
+  ...
+# Subtest: unreachable work destination reports blocked and never counts completion
+ok 17 - unreachable work destination reports blocked and never counts completion
+  ---
+  duration_ms: 2.4732
+  type: 'test'
+  ...
+# Subtest: worker count and speed are bounded; changing speed changes simulated time
+ok 18 - worker count and speed are bounded; changing speed changes simulated time
+  ---
+  duration_ms: 2.4492
+  type: 'test'
+  ...
+# Subtest: legacy stack result includes exact count, max layers, utilization and no overflow
+ok 19 - legacy stack result includes exact count, max layers, utilization and no overflow
+  ---
+  duration_ms: 0.4136
+  type: 'test'
+  ...
+# Subtest: legacy stack payload and supporting IDs survive migration
+ok 20 - legacy stack payload and supporting IDs survive migration
+  ---
+  duration_ms: 0.3282
+  type: 'test'
+  ...
+# Subtest: UTF8 base64 roundtrip preserves Korean and emoji
+ok 21 - UTF8 base64 roundtrip preserves Korean and emoji
+  ---
+  duration_ms: 1.1665
+  type: 'test'
+  ...
+# Subtest: file paths reject traversal, reserved folders and query injection
+ok 22 - file paths reject traversal, reserved folders and query injection
+  ---
+  duration_ms: 1.3638
+  type: 'test'
+  ...
+# Subtest: repository target always remains api.github.com and validates branch
+ok 23 - repository target always remains api.github.com and validates branch
+  ---
+  duration_ms: 0.3502
+  type: 'test'
+  ...
+# Subtest: new file probes absence then creates commit, with no credentials in JSON
+ok 24 - new file probes absence then creates commit, with no credentials in JSON
+  ---
+  duration_ms: 19.917499
+  type: 'test'
+  ...
+# Subtest: loaded file updates with originally loaded SHA, not freshly fetched SHA
+ok 25 - loaded file updates with originally loaded SHA, not freshly fetched SHA
+  ---
+  duration_ms: 0.8481
+  type: 'test'
+  ...
+# Subtest: existing but never loaded file cannot be silently overwritten
+ok 26 - existing but never loaded file cannot be silently overwritten
+  ---
+  duration_ms: 0.629
+  type: 'test'
+  ...
+# Subtest: GitHub HTTP 401 is surfaced and never marked saved
+ok 27 - GitHub HTTP 401 is surfaced and never marked saved
+  ---
+  duration_ms: 0.8735
+  type: 'test'
+  ...
+# Subtest: GitHub HTTP 403 is surfaced and never marked saved
+ok 28 - GitHub HTTP 403 is surfaced and never marked saved
+  ---
+  duration_ms: 0.294
+  type: 'test'
+  ...
+# Subtest: GitHub HTTP 404 is surfaced and never marked saved
+ok 29 - GitHub HTTP 404 is surfaced and never marked saved
+  ---
+  duration_ms: 0.3945
+  type: 'test'
+  ...
+# Subtest: GitHub HTTP 409 is surfaced and never marked saved
+ok 30 - GitHub HTTP 409 is surfaced and never marked saved
+  ---
+  duration_ms: 0.4059
+  type: 'test'
+  ...
+# Subtest: GitHub HTTP 422 is surfaced and never marked saved
+ok 31 - GitHub HTTP 422 is surfaced and never marked saved
+  ---
+  duration_ms: 3.7314
+  type: 'test'
+  ...
+# Subtest: GitHub HTTP 429 is surfaced and never marked saved
+ok 32 - GitHub HTTP 429 is surfaced and never marked saved
+  ---
+  duration_ms: 0.3236
+  type: 'test'
+  ...
+# Subtest: GitHub HTTP 500 is surfaced and never marked saved
+ok 33 - GitHub HTTP 500 is surfaced and never marked saved
+  ---
+  duration_ms: 0.1845
+  type: 'test'
+  ...
+# Subtest: 409 update conflict retains loaded SHA and caller data
+ok 34 - 409 update conflict retains loaded SHA and caller data
+  ---
+  duration_ms: 0.9328
+  type: 'test'
+  ...
+# Subtest: without token public read works but writes rejected before fetch
+ok 35 - without token public read works but writes rejected before fetch
+  ---
+  duration_ms: 0.3648
+  type: 'test'
+  ...
+# Subtest: network failure reports a recoverable error
+ok 36 - network failure reports a recoverable error
+  ---
+  duration_ms: 0.2235
+  type: 'test'
+  ...
+# Subtest: share URL never includes token, old queries or fragment; read-only route
+ok 37 - share URL never includes token, old queries or fragment; read-only route
+  ---
+  duration_ms: 0.2608
+  type: 'test'
+  ...
+# Subtest: disconnect erases credential and loaded SHA; secrets are not serializable/persisted
+ok 38 - disconnect erases credential and loaded SHA; secrets are not serializable/persisted
+  ---
+  duration_ms: 1.6074
+  type: 'test'
+  ...
+# Subtest: concurrent save is serialized and duplicate click rejected
+ok 39 - concurrent save is serialized and duplicate click rejected
+  ---
+  duration_ms: 0.511099
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 225.989091
