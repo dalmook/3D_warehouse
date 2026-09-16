@@ -1,3 +1,5 @@
+# Archived migration. Never replay against the maintained modular application.
+raise SystemExit('Retired migration: use Git history to inspect the original operation. No files changed.')
 """Restore the exact missing suffix from the owner's original V7 project archive.
 The entire existing 41,472-byte prefix matches that archive byte-for-byte.
 No bridge, S3, credentials or executable server files are restored.

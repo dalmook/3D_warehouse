@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "name": "actual assets and independent skeletons",
+      "passed": true
+    },
+    {
+      "name": "background image calibration persists and round trips",
+      "passed": true
+    },
+    {
+      "name": "rack preview rejects collisions atomically",
+      "passed": true
+    },
+    {
+      "name": "operations survive camera mode changes and conserve all units",
+      "passed": true
+    },
+    {
+      "name": "mobile simultaneous movement and look pointers",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "resourceCycles": {
+    "before": {
+      "assets": 11,
+      "mixers": 4
+    },
+    "after": {
+      "assets": 11,
+      "mixers": 4
+    }
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "environment": "Local HTTP, no transport compression, empty browser context",
+  "usableMs": 870,
+  "resources": [
+    {
+      "url": "http://127.0.0.1:4173/city.css",
+      "transfer": 9245,
+      "encoded": 8945,
+      "decoded": 8945
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-app.mjs",
+      "transfer": 54843,
+      "encoded": 54543,
+      "decoded": 54543
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-storage.mjs",
+      "transfer": 1825,
+      "encoded": 1525,
+      "decoded": 1525
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-design.mjs",
+      "transfer": 3347,
+      "encoded": 3047,
+      "decoded": 3047
+    },
+    {
+      "url": "http://127.0.0.1:4173/vendor/three.module.js",
+      "transfer": 365852,
+      "encoded": 365552,
+      "decoded": 365552
+    },
+    {
+      "url": "http://127.0.0.1:4173/vendor/addons/environments/RoomEnvironment.js",
+      "transfer": 5260,
+      "encoded": 4960,
+      "decoded": 4960
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-assets.mjs",
+      "transfer": 5951,
+      "encoded": 5651,
+      "decoded": 5651
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-thumbnails.mjs",
+      "transfer": 1515,
+      "encoded": 1215,
+      "decoded": 1215
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-coordinates.mjs",
+      "transfer": 614,
+      "encoded": 314,
+      "decoded": 314
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-logistics.mjs",
+      "transfer": 9417,
+      "encoded": 9117,
+      "decoded": 9117
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-render.mjs",
+      "transfer": 1563,
+      "encoded": 1263,
+      "decoded": 1263
+    },
+    {
+      "url": "http://127.0.0.1:4173/vendor/OrbitControls.js",
+      "transfer": 40804,
+      "encoded": 40504,
+      "decoded": 40504
+    },
+    {
+      "url": "http://127.0.0.1:4173/city-core.mjs",
+      "transfer": 13934,
+      "encoded": 13634,
+      "decoded": 13634
+    },
+    {
+      "url": "http://127.0.0.1:4173/vendor/addons/utils/SkeletonUtils.js",
+      "transfer": 11835,
+      "encoded": 11535,
+      "decoded": 11535
+    },
+    {
+      "url": "http://127.0.0.1:4173/vendor/addons/loaders/GLTFLoader.js",
+      "transfer": 115259,
+      "encoded": 114959,
+      "decoded": 114959
+    },
+    {
+      "url": "http://127.0.0.1:4173/vendor/addons/utils/BufferGeometryUtils.js",
+      "transfer": 37921,
+      "encoded": 37621,
+      "decoded": 37621
+    },
+    {
+      "url": "http://127.0.0.1:4173/vendor/three.core.min.js",
+      "transfer": 385686,
+      "encoded": 385386,
+      "decoded": 385386
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/rack-frame.glb",
+      "transfer": 322892,
+      "encoded": 322592,
+      "decoded": 322592
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/rack-beam.glb",
+      "transfer": 10588,
+      "encoded": 10288,
+      "decoded": 10288
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/pallet.glb",
+      "transfer": 246956,
+      "encoded": 246656,
+      "decoded": 246656
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/plastic-pallet.glb",
+      "transfer": 54744,
+      "encoded": 54444,
+      "decoded": 54444
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/box.glb",
+      "transfer": 192300,
+      "encoded": 192000,
+      "decoded": 192000
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/forklift.glb",
+      "transfer": 108356,
+      "encoded": 108056,
+      "decoded": 108056
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/handpallet.glb",
+      "transfer": 28832,
+      "encoded": 28532,
+      "decoded": 28532
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/conveyor.glb",
+      "transfer": 122516,
+      "encoded": 122216,
+      "decoded": 122216
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/worktable.glb",
+      "transfer": 194384,
+      "encoded": 194084,
+      "decoded": 194084
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/dock.glb",
+      "transfer": 33048,
+      "encoded": 32748,
+      "decoded": 32748
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/models/worker.glb",
+      "transfer": 415968,
+      "encoded": 415668,
+      "decoded": 415668
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/textures/epoxy-albedo.png",
+      "transfer": 38954,
+      "encoded": 38654,
+      "decoded": 38654
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/textures/epoxy-normal.png",
+      "transfer": 35278,
+      "encoded": 34978,
+      "decoded": 34978
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/textures/epoxy-roughness.png",
+      "transfer": 42639,
+      "encoded": 42339,
+      "decoded": 42339
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/models/rack-frame.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "753439a1655eee5c71cbbb887721d86cdc769f1fdc397791ce3188ad5bb723d6",
+      "identical": true,
+      "bytes": 322592
+    },
+    {
+      "path": "assets/models/rack-beam.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "e3c058cb3a60487949595fbc598319757d4f77b36c60dbc80fe4aefe695a1080",
+      "identical": true,
+      "bytes": 10288
+    },
+    {
+      "path": "assets/models/pallet.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "74328676414ebf28a16c3727853fed1eaa80ff89c59d3ef064553848c76074c2",
+      "identical": true,
+      "bytes": 246656
+    },
+    {
+      "path": "assets/models/plastic-pallet.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "c319ef71319156e8ac75dd65a0a47bda5c41fb16f18244321835ea6a74298a1a",
+      "identical": true,
+      "bytes": 54444
+    },
+    {
+      "path": "assets/models/box.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "8cadef4e700d8a385f092c38993d878cf773a67fe4c420eb62dc72d8dec45101",
+      "identical": true,
+      "bytes": 192000
+    },
+    {
+      "path": "assets/models/forklift.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "823b8582400214ae121c459db065f003c345501f6f20887032164e8797e45b13",
+      "identical": true,
+      "bytes": 108056
+    },
+    {
+      "path": "assets/models/handpallet.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "bf05004e90b9194aa33082414c1362013afd0c0ab96a531052d214f44590733b",
+      "identical": true,
+      "bytes": 28532
+    },
+    {
+      "path": "assets/models/conveyor.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "f6f21554a8d2a220eaf7f2914669941a48f4bbeed2ea032cb1658d1806ab639f",
+      "identical": true,
+      "bytes": 122216
+    },
+    {
+      "path": "assets/models/worktable.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "8022e418d7ee4eb447b45b3aeef54dd182f5830fb2f2a0674a1159d032811358",
+      "identical": true,
+      "bytes": 194084
+    },
+    {
+      "path": "assets/models/dock.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "40553ef4e7f4786068ef136eb457439bc18d6353c0885040ea2284cf700f1849",
+      "identical": true,
+      "bytes": 32748
+    },
+    {
+      "path": "assets/models/worker.glb",
+      "status": 200,
+      "mime": "application/octet-stream",
+      "magic": "glTF",
+      "sha256": "ae62b9d1a69db7ba21311a0e677731499cc2f84b4de4df2cc4843c28043bf0eb",
+      "identical": true,
+      "bytes": 415668
+    }
+  ],
+  "totalTransfer": 2912326,
+  "totalDecoded": 2903026
+}

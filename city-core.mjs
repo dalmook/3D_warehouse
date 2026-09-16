@@ -96,6 +96,15 @@ export function blocked(x,y,layout,radius=.3) {
   });
 }
 export function segmentFree(a,b,layout,radius=.3) {
+  for(const zone of layout.objects){
+    const direction=zone.type==='aisle'&&zone.config?.oneWay;
+    if(!['+x','-x','+y','-y'].includes(direction))continue;
+    const r=zone.rotation*Math.PI/180,c=Math.cos(r),s=Math.sin(r),dx=b.x-a.x,dy=b.y-a.y;
+    const movement=direction.endsWith('x')?dx*c-dy*s:dx*s+dy*c;
+    if(movement*(direction[0]==='+'?1:-1)>=-1e-8)continue;
+    const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.2));
+    for(let i=0;i<=n;i++){const x=a.x+dx*i/n-zone.x,y=a.y+dy*i/n-zone.y;if(Math.abs(x*c-y*s)<zone.width/2&&Math.abs(x*s+y*c)<zone.depth/2)return false;}
+  }
   const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.12));
   for(let i=0;i<=steps;i++) if(blocked(a.x+(b.x-a.x)*i/steps,a.y+(b.y-a.y)*i/steps,layout,radius)) return false;
   return true;
@@ -125,7 +134,7 @@ export class Navigation {
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
         const nx=x+dx,ny=y+dy,j=ny*this.w+nx;
         if(nx<0||ny<0||nx>=this.w||ny>=this.h||this.grid[j]||parent[j]!==-1)continue;
-        const key=i<j?`${i}:${j}`:`${j}:${i}`;
+        const key=`${i}:${j}`;
         if(!this.edges.has(key))this.edges.set(key,segmentFree(this.point(i),this.point(j),this.layout,this.radius));
         if(!this.edges.get(key))continue;
         parent[j]=i;queue[tail++]=j;

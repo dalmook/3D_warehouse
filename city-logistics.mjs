@@ -29,7 +29,7 @@ export class Logistics {
   this.agents=layout.objects.filter(o=>moving.has(o.type)).slice(0,48).map((o,i)=>({...copy(o),radius:o.type==='forklift'?Math.hypot(o.width,o.depth)/2+.1:.32,heading:0,status:'대기',phase:'idle',distance:0,busy:0,waiting:0,path:[],step:1,cargo:null,index:i}));
   this.targets=[];
   if(docks.length<2||!racks.length||!table||!this.agents.some(a=>a.type==='forklift')||!this.agents.some(a=>a.type==='worker')){this.error='입고/출하 도크 2개, 팔레트랙, 작업대, 지게차, 작업자가 필요합니다.';return;}
-  this.navs=new Map(this.agents.map(a=>[a.id,new Navigation(this.navLayout,.5,a.radius)]));
+  const navCache=new Map();this.navs=new Map(this.agents.map(a=>{const key=a.type+':'+a.radius;if(!navCache.has(key))navCache.set(key,new Navigation({...this.navLayout,objects:this.navLayout.objects.map(o=>o.config?.allowed?.length&&!o.config.allowed.includes(a.type)?{...o,type:'partition',height:2}:o)},.5,a.radius));return [a.id,navCache.get(key)];}));
   const access=(o,radius)=>{
    const candidates=[{x:o.x,y:o.y+o.depth/2+radius+.3},{x:o.x,y:o.y-o.depth/2-radius-.3},{x:o.x+o.width/2+radius+.3,y:o.y},{x:o.x-o.width/2-radius-.3,y:o.y}];
    return candidates.find(p=>!blocked(p.x,p.y,this.navLayout,radius));
@@ -39,6 +39,7 @@ export class Logistics {
   this.slots=racks.flatMap(r=>Array.from({length:(r.config?.bays||4)*(r.config?.levels||4)*(r.config?.palletsPerLevel||2)},(_,i)=>({id:r.id+':'+i,point:access(r,fr),rack:r.id,index:i,unit:null})));
   if(!this.inbound||!this.outbound||!this.table||!this.slots.some(s=>s.point)){this.error='설비 앞 작업 공간이 막혔습니다. 통로 폭과 벽 이격을 확인하세요.';return;}
   this.slots=this.slots.filter(s=>s.point);this.targets=[this.inbound,this.table,this.outbound,...this.slots.map(s=>s.point)];
+  for(const slot of this.slots){const rack=racks.find(r=>r.id===slot.rack),b=rack.config?.bays||4,n=rack.config?.palletsPerLevel||2,l=rack.config?.levels||4;const bay=Math.floor(slot.index/n)%b,level=Math.floor(slot.index/(n*b)),within=slot.index%n,x=-rack.width/2+(bay+(within+.5)/n)*rack.width/b,r=rack.rotation*Math.PI/180;slot.visual={x:rack.x+x*Math.cos(r),y:rack.y-x*Math.sin(r),z:.44+level*(rack.height-.3)/l};}
   for(let i=0;i<Math.min(units,this.slots.length);i++){const slot=this.slots[i];slot.unit='unit-'+i;this.units.push({id:slot.unit,state:'inbound',owner:null,slot:slot.id,point:{...this.inbound},received:0,shipped:null});this.log('received',slot.unit);}
   this.received=this.units.length;
  }
@@ -86,12 +87,12 @@ export class Logistics {
     a.waiting+=STEP;a.stall+=STEP;a.status=a.stall>20?'교착 · '+conflict.name:'양보 · '+conflict.name;
     if(Math.round(a.stall/STEP)%20===0){
      const obstacles=this.agents.filter(b=>b!==a).map(b=>({id:'traffic-'+b.id,type:'partition',x:b.x,y:b.y,z:0,width:b.radius*2+.12,depth:b.radius*2+.12,height:2,rotation:0}));
-     const nav=new Navigation({...this.navLayout,objects:[...this.navLayout.objects,...obstacles]},.25,a.radius);
+     const base=this.navs.get(a.id).layout,nav=new Navigation({...base,objects:[...base.objects,...obstacles]},.25,a.radius);
      const destination=a.phase==='approach'?u.point:a.job.destination,path=nav.path(a,destination);
      if(path.length){a.path=path;a.step=1;a.status='재탐색';}
     }continue;
    }
-   if(!segmentFree(a,next,this.navLayout,a.radius)){a.phase='blocked';a.status='경로 없음 · 통로 차단';continue;}
+   if(!segmentFree(a,next,this.navs.get(a.id).layout,a.radius)){a.phase='blocked';a.status='경로 없음 · 통로 차단';continue;}
    a.x=next.x;a.y=next.y;a.distance+=move;this.distance+=move;a.heading=Math.atan2(dx,dy);a.stall=0;a.status=a.cargo?'운반':'이동';if(d<=move+.00001)a.step++;
    if(a.cargo)u.point={x:a.x,y:a.y};
   }

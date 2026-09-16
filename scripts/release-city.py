@@ -1,3 +1,5 @@
+# Archived migration. Never replay against the maintained modular application.
+raise SystemExit('Retired migration: use Git history to inspect the original operation. No files changed.')
 """One-time, idempotent v9-preview -> v9.1 release migration. Preserves V8 and layouts."""
 from pathlib import Path
 import re

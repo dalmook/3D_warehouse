@@ -22,7 +22,7 @@ white=material('Label',(.88,.9,.89),.65)
 navy=material('Workwear',(.035,.065,.12),.88)
 vest=material('Hi_vis_vest',(.95,.37,.035),.75)
 skin=material('Skin',(.48,.29,.19),.78)
-yellow=material('Equipment_yellow',(.95,.57,.035),.34,.35)
+yellow=material('Equipment_yellow',(.95,.57,.035),.52,.2)
 plastic=material('Moulded_plastic',(.08,.16,.2),.48)
 for m,name in [(wood,'wood'),(card,'cardboard')]:
  nodes=m.node_tree.nodes;links=m.node_tree.links;bs=nodes.get('Principled BSDF')
@@ -53,6 +53,12 @@ def cyl(name,r,depth,loc,mat,axis='Z',vertices=20):
  return o
 def ellipsoid(name,dim,loc,mat):
  bpy.ops.mesh.primitive_uv_sphere_add(segments=16,ring_count=10,radius=1,location=loc);o=bpy.context.object;o.name=name;o.scale=tuple(v/2 for v in dim);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True);o.data.materials.append(mat)
+ for p in o.data.polygons:p.use_smooth=True
+ return o
+def limb(name,width,depth,length,loc,mat):
+ bpy.ops.mesh.primitive_cone_add(vertices=16,radius1=width*.44,radius2=width*.5,depth=length,location=loc)
+ o=bpy.context.object;o.name=name;o.scale.y=depth/width;bpy.ops.object.transform_apply(location=False,rotation=False,scale=True);o.data.materials.append(mat)
+ bevel=o.modifiers.new('Cloth_edge','BEVEL');bevel.width=.018;bevel.segments=3;bpy.ops.object.modifier_apply(modifier=bevel.name)
  for p in o.data.polygons:p.use_smooth=True
  return o
 def bar(name,a,b,width,mat):
@@ -144,26 +150,39 @@ cube('Dock_leveller',(2.6,2.2,.09),(0,-.9,.045),steel)
 for x in [-1.3,1.3]:
  cube('Safety_edge',(.05,2.2,.003),(x,-.9,.092),yellow,0)
  cyl('Bollard',.085,.95,(x,-1.9,.475),yellow)
+# Centre the complete leveller/seal assembly inside the saved placement footprint.
+for o in bpy.context.scene.objects:o.location.y+=.9
 save('dock',[3,2.5,3.4])
 # Rig: each anatomical mesh has rigid weights to an articulated bone. No shared skeletons.
 reset();parts=[]
 def part(o,b):parts.append((o,b));return o
 part(ellipsoid('Torso',(.43,.26,.57),(0,0,1.2),navy),'Spine')
 part(ellipsoid('Vest',(.45,.28,.43),(0,-.005,1.26),vest),'Spine')
-for z in [1.15,1.34]:part(cube('Reflective_band',(.43,.018,.033),(0,-.145,z),white,.003),'Spine')
+for z in [1.15,1.34]:part(cube('Reflective_band',(.34,.025,.033),(0,-.121,z),white,.003),'Spine')
 part(ellipsoid('Pelvis',(.33,.24,.21),(0,0,.89),navy),'Hips')
 part(cyl('Neck',.057,.09,(0,0,1.49),skin),'Head')
 part(ellipsoid('Head',(.19,.2,.24),(0,-.006,1.61),skin),'Head')
 part(ellipsoid('Hardhat',(.245,.26,.135),(0,0,1.733),yellow),'Head')
 part(ellipsoid('Helmet_brim',(.27,.29,.025),(0,-.017,1.70),yellow),'Head')
-for x in [-.043,.043]:part(ellipsoid('Eye',(.018,.012,.015),(x,-.099,1.64),rubber),'Head')
+part(ellipsoid('Nose',(.033,.039,.044),(0,-.104,1.608),skin),'Head')
+part(ellipsoid('Lower_jaw',(.125,.139,.082),(0,-.011,1.536),skin),'Head')
+for x in [-.092,.092]:part(ellipsoid('Ear',(.025,.039,.061),(x,-.003,1.601),skin),'Head')
+for x in [-.04,.04]:
+ part(ellipsoid('Eye',(.025,.007,.009),(x,-.101,1.631),white),'Head')
+ part(ellipsoid('Iris',(.008,.006,.008),(x,-.105,1.631),rubber),'Head')
+ part(cube('Brow',(.028,.006,.005),(x,-.103,1.647),navy,.001),'Head')
+part(ellipsoid('Mouth',(.044,.003,.006),(0,-.101,1.563),material('Lips',(.3,.13,.1))),'Head')
+part(cube('Vest_zip',(.018,.01,.36),(0,-.151,1.28),rubber,.002),'Spine')
+for x in [-.12,.12]:part(cube('Vest_pocket',(.11,.012,.10),(x,-.143,1.19),vest,.01),'Spine')
 for side,s in [('L',-1),('R',1)]:
  x=s*.105
- part(ellipsoid('Thigh',(.18,.19,.42),(x,0,.665),navy),'Thigh'+side)
- part(ellipsoid('Shin',(.135,.145,.4),(x,.008,.285),navy),'Shin'+side)
+ part(limb('Thigh',.18,.19,.42,(x,0,.665),navy),'Thigh'+side)
+ part(ellipsoid('Knee',(.145,.155,.14),(x,0,.46),navy),'Shin'+side)
+ part(limb('Shin',.135,.145,.4,(x,.008,.285),navy),'Shin'+side)
  part(ellipsoid('Boot',(.17,.3,.13),(x,-.063,.065),rubber),'Shin'+side)
- part(ellipsoid('Upper_arm',(.125,.14,.31),(s*.28,0,1.22),navy),'Arm'+side)
- part(ellipsoid('Forearm',(.105,.115,.29),(s*.3,-.012,.95),navy),'Forearm'+side)
+ part(limb('Upper_arm',.135,.14,.31,(s*.28,0,1.22),navy),'Arm'+side)
+ part(ellipsoid('Elbow',(.125,.13,.12),(s*.30,0,1.08),navy),'Forearm'+side)
+ part(limb('Forearm',.115,.12,.29,(s*.3,-.012,.95),navy),'Forearm'+side)
  part(ellipsoid('Glove',(.105,.1,.13),(s*.30,-.015,.775),rubber),'Forearm'+side)
 armdata=bpy.data.armatures.new('WorkerSkeleton');arm=bpy.data.objects.new('WorkerRig',armdata);bpy.context.collection.objects.link(arm);bpy.context.view_layer.objects.active=arm;arm.select_set(True);bpy.ops.object.mode_set(mode='EDIT')
 def bone(name,head,tail,parent=None):
@@ -204,5 +223,5 @@ for name in ['Idle','Walk','Carry','PickPlace']:
  act.use_fake_user=True
 arm.animation_data.action=None;bpy.context.scene.render.fps=30;bpy.context.scene.frame_end=32
 save('worker',[.6,.6,1.8],['Idle','Walk','Carry','PickPlace'])
-(ROOT/'assets/manifest.json').write_text(json.dumps({'generator':'scripts/build-assets.py','blender':bpy.app.version_string,'assets':records},indent=2))
+(ROOT/'assets/manifest.json').write_text(json.dumps({'generator':'scripts/build-assets.py','blender':bpy.app.version_string,'assets':records,'textures':[{'path':str(p.relative_to(ROOT)).replace('\\','/'),'author':'Warehouse City project / Codex','license':'CC0-1.0','source':'scripts/make-textures.py','modifications':'Deterministic generated tile; seed 42','colorSpace':'sRGB' if 'albedo' in p.name else 'linear'} for p in sorted((ROOT/'assets/textures').glob('*.png'))]},indent=2))
 print('ASSETS_COMPLETE',len(records))

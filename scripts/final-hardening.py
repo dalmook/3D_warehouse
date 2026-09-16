@@ -1,3 +1,5 @@
+# Archived migration. Never replay against the maintained modular application.
+raise SystemExit('Retired migration: use Git history to inspect the original operation. No files changed.')
 """Apply the reviewed rendering change to the exact 9.1 source, once.
 Only repository source files are touched. No credentials, layouts or local storage.
 """

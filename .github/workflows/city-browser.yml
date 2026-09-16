@@ -35,7 +35,9 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Desktop, mobile, 600-rack stress and classic asset checks
+      - name: Software-rendered low-preset desktop, mobile, stress and classic checks
+        env:
+          BASE_URL: http://127.0.0.1:4173/?quality=low
         run: |
           mkdir -p qa-evidence
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/city-http.log 2>&1 &
@@ -45,6 +47,7 @@ jobs:
       - name: Real GitHub save and load with temporary-branch cleanup
         env:
           QA_GITHUB_TOKEN: ${{ github.token }}
+          BASE_URL: http://127.0.0.1:4173/?quality=low
         run: node tests/live-github.mjs
       - name: Read existing Pages configuration without changing it
         id: pages
@@ -53,7 +56,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p qa-evidence
-          gh api repos/dalmook/3D_warehouse/pages > qa-evidence/pages-status.json
+          if ! gh api repos/dalmook/3D_warehouse/pages > qa-evidence/pages-status.json; then
+            echo '::warning::Pages configuration is unavailable; deployed verification is blocked.'
+            echo '{"build_type":"unavailable","html_url":""}' > qa-evidence/pages-status.json
+          fi
           python3 - <<'PY'
           import json,os
           p=json.load(open('qa-evidence/pages-status.json'))
@@ -102,7 +108,7 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
   published:
-    if: always() && github.ref == 'refs/heads/main' && needs.browser.result == 'success' && (needs.deploy.result == 'success' || needs.deploy.result == 'skipped')
+    if: always() && github.ref == 'refs/heads/main' && needs.browser.result == 'success' && needs.browser.outputs.pages_type != 'unavailable' && (needs.deploy.result == 'success' || needs.deploy.result == 'skipped')
     needs: [browser, deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 12

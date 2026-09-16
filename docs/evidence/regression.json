@@ -1,0 +1,95 @@
+{
+  "passed": true,
+  "total": 22,
+  "results": [
+    {
+      "name": "default entry renders real WebGL",
+      "passed": true
+    },
+    {
+      "name": "new blank warehouse, real pointer placement and rotation",
+      "passed": true
+    },
+    {
+      "name": "inspector changes rack capacity and colour",
+      "passed": true
+    },
+    {
+      "name": "undo and redo preserve object properties",
+      "passed": true
+    },
+    {
+      "name": "row placement is atomic, including invalid overlap",
+      "passed": true
+    },
+    {
+      "name": "Korean project name survives automatic save and reload",
+      "passed": true
+    },
+    {
+      "name": "JSON export and import round trip",
+      "passed": true
+    },
+    {
+      "name": "legacy JSON loads without overwriting legacy browser data",
+      "passed": true
+    },
+    {
+      "name": "workers move, pause and preserve original design positions",
+      "passed": true
+    },
+    {
+      "name": "simulation speed and dwell are editable and reset the run",
+      "passed": true
+    },
+    {
+      "name": "walkthrough keeps workers running and WASD moves the camera",
+      "passed": true
+    },
+    {
+      "name": "first-person drag look and focus mode work",
+      "passed": true
+    },
+    {
+      "name": "walk camera cannot pass through a thin wall",
+      "passed": true
+    },
+    {
+      "name": "GitHub create commits Korean JSON using no backend",
+      "passed": true
+    },
+    {
+      "name": "GitHub update uses existing SHA rather than blindly overwriting",
+      "passed": true
+    },
+    {
+      "name": "remote changes block stale writes",
+      "passed": true
+    },
+    {
+      "name": "401 and 409 responses report errors without losing local work",
+      "passed": true
+    },
+    {
+      "name": "GitHub list and load restore the committed document",
+      "passed": true
+    },
+    {
+      "name": "token never enters storage or exported data and clears on close",
+      "passed": true
+    },
+    {
+      "name": "mobile layout, touch navigation and GitHub dialog",
+      "passed": true
+    },
+    {
+      "name": "classic editor remains accessible with its original assets",
+      "passed": true
+    },
+    {
+      "name": "no unhandled browser exceptions",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

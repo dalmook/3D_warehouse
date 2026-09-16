@@ -238,5 +238,79 @@
         "PickPlace"
       ]
     }
+  ],
+  "textures": [
+    {
+      "path": "assets/textures/cardboard-albedo.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "sRGB"
+    },
+    {
+      "path": "assets/textures/cardboard-normal.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/cardboard-roughness.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/epoxy-albedo.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "sRGB"
+    },
+    {
+      "path": "assets/textures/epoxy-normal.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/epoxy-roughness.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/wood-albedo.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "sRGB"
+    },
+    {
+      "path": "assets/textures/wood-normal.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/wood-roughness.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    }
   ]
 }

@@ -37,7 +37,7 @@ export function cacheStats(){return {assets:cache.size,mixers:mixers.size};}
 export function staticInstances(name,transforms,parent,tint){
  for(const {geometry,material} of merged.get(name)||[]){
   let surface=material;if(tint&&material.name==='Powder_coated_blue'){const key=material.uuid+tint;if(!tinted.has(key)){const copy=material.clone();copy.color.set(tint);tinted.set(key,copy);}surface=tinted.get(key);}
-  const m=new THREE.InstancedMesh(geometry,surface,transforms.length);transforms.forEach((t,i)=>m.setMatrixAt(i,t));m.instanceMatrix.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;m.computeBoundingSphere();parent.add(m);
+  const m=new THREE.InstancedMesh(geometry,surface,transforms.length);m.userData.assetPart=name;transforms.forEach((t,i)=>m.setMatrixAt(i,t));m.instanceMatrix.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;m.computeBoundingSphere();parent.add(m);
  }
 }
 const matrix=(x,y,z,sx=1,sy=1,sz=1)=>new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion(),new THREE.Vector3(sx,sy,sz));
@@ -66,6 +66,9 @@ export function rackAsset(o){
 }
 export function fitAsset(name,o){
  const g=asset(name);if(!g)return null;
+ const defaults={worker:'#20a18b',forklift:'#eeae33',pallet:'#bb9164',box:'#cb9c66',conveyor:'#568e9c',worktable:'#8371c5',dock:'#528194',handpallet:'#eeae33','plastic-pallet':'#245569'};
+ const primary={worker:'Workwear',forklift:'Equipment_yellow',pallet:'Pallet_wood',box:'Corrugated_cardboard',conveyor:'Powder_coated_blue',worktable:'Powder_coated_blue',dock:'Rubber',handpallet:'Equipment_yellow','plastic-pallet':'Moulded_plastic'};
+ if(o.color&&o.color!==defaults[name])g.traverse(m=>{if(m.isMesh&&m.material.name===primary[name]){const key=m.material.uuid+o.color;if(!tinted.has(key)){const material=m.material.clone();material.color.set(o.color);tinted.set(key,material);}m.material=tinted.get(key);}});
  const dimensions={pallet:[1.2,.16,1],box:[.6,.405,.4],forklift:[1.2,2.2,2.4],conveyor:[3,.93,1.15],worktable:[2,.9,1],dock:[3,3.4,2.5],worker:[.6,1.8,.6],handpallet:[.8,1.15,1.6],'plastic-pallet':[1.2,.16,1]};
  const s=dimensions[name];if(s)g.scale.set(o.width/s[0],o.height/s[1],o.depth/s[2]);return g;
 }
