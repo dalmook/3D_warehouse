@@ -16,55 +16,60 @@ jobs:
     permissions:
       contents: write
       pages: read
+    outputs:
+      pages_type: ${{ steps.pages.outputs.type }}
+      pages_url: ${{ steps.pages.outputs.url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply synchronous token-clear hardening on QA branch
+      - name: Restore the verified original classic module once on QA branch
         if: github.ref == 'refs/heads/fix/city-release-qa'
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('city-app.mjs')
-          s=p.read_text().replace("$('ghClose').onclick=()=>$('githubDialog').close();", "$('ghClose').onclick=()=>{$('ghToken').value='';$('ghConsent').checked=false;$('githubDialog').close();};")
-          p.write_text(s)
-          PY
+          if [ ! -f .release/objects-tail.zlib ]; then exit 0; fi
+          python3 scripts/restore-classic.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add city-app.mjs
-          if ! git diff --cached --quiet; then
-            git commit -m 'fix: clear GitHub credentials synchronously when closing the save dialog'
-            git push origin HEAD:fix/city-release-qa
-          fi
-      - name: Core and syntax tests
+          git add objects.js boot.js classic.html tests/live-github.mjs
+          git add -u .release
+          git commit -m 'fix: restore complete original classic assets and keep serverless entry guidance'
+          git push origin HEAD:fix/city-release-qa
+      - name: Unit and syntax tests
         run: |
           node --test city-core.test.mjs tests/core-release.test.mjs
-          node --check city-app.mjs
-          node --input-type=module --check < vendor/three.module.js
-          node --input-type=module --check < vendor/three.core.min.js
-          node --input-type=module --check < vendor/OrbitControls.js
-      - name: Install Chromium test runner
+          for f in city-app.mjs city-core.mjs app.js objects.js boot.js vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
+            node --input-type=module --check < "$f"
+          done
+      - name: Install Chromium
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Real desktop and mobile browser scenarios
+      - name: Desktop, mobile and all classic asset checks
         run: |
           mkdir -p qa-evidence
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/city-http.log 2>&1 &
           node tests/browser.mjs
-      - name: Real GitHub create, update and load with temporary-branch cleanup
+          node tests/classic.mjs
+      - name: Real GitHub save and load with temporary-branch cleanup
         env:
           QA_GITHUB_TOKEN: ${{ github.token }}
         run: node tests/live-github.mjs
-      - name: Record Pages configuration without exposing credentials
+      - name: Read existing Pages configuration without changing it
+        id: pages
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p qa-evidence
-          gh api repos/dalmook/3D_warehouse/pages > qa-evidence/pages-status.json 2> qa-evidence/pages-status-error.txt || true
-      - name: Package source snapshot and test evidence
+          gh api repos/dalmook/3D_warehouse/pages > qa-evidence/pages-status.json
+          python3 - <<'PY'
+          import json,os
+          p=json.load(open('qa-evidence/pages-status.json'))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+            f.write('type='+p['build_type']+'\nurl='+p['html_url']+'\n')
+          PY
+      - name: Package source and evidence
         if: always()
         run: |
           mkdir -p qa-evidence
@@ -79,7 +84,7 @@ jobs:
           path: qa-evidence/
           retention-days: 14
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.browser.outputs.pages_type == 'workflow'
     needs: browser
     runs-on: ubuntu-latest
     permissions:
@@ -92,31 +97,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      - name: Assemble static website only
+      - name: Assemble static website
         run: |
           mkdir _site
           cp index.html city.html classic.html city-app.mjs city-core.mjs city.css app.js boot.js objects.js styles.css .nojekyll _site/
           cp -r vendor licenses layouts _site/
-          printf '{"commit":"%s","version":"9.1.0"}\n' "$GITHUB_SHA" > _site/release.json
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
-      - name: Deploy GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
+  published:
+    if: always() && github.ref == 'refs/heads/main' && needs.browser.result == 'success' && (needs.deploy.result == 'success' || needs.deploy.result == 'skipped')
+    needs: [browser, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    env:
+      BASE_URL: ${{ needs.browser.outputs.pages_url }}
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install deployed-site browser verifier
+      - name: Verify published files against this exact commit
+        run: node tests/deployed.mjs
+      - name: Install Chromium
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Verify the published build and run browser scenarios on Pages
-        env:
-          BASE_URL: ${{ steps.deployment.outputs.page_url }}
+      - name: Repeat desktop, mobile and classic checks on the published site
         run: |
-          node tests/deployed.mjs
           node tests/browser.mjs
+          node tests/classic.mjs
+      - name: Verify real saving from the published origin
+        env:
+          QA_GITHUB_TOKEN: ${{ github.token }}
+        run: node tests/live-github.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
