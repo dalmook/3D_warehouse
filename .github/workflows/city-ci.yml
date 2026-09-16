@@ -2,9 +2,9 @@ name: Warehouse City checks
 on:
   push:
     branches: [main, feat/warehouse-city-v9]
-    paths: ['city*', 'vendor/**', '.github/workflows/city-ci.yml']
+    paths: ['city*', 'index.html', 'tests/**', 'vendor/**', '.github/workflows/city-ci.yml']
   pull_request:
-    paths: ['city*', 'vendor/**', '.github/workflows/city-ci.yml']
+    paths: ['city*', 'index.html', 'tests/**', 'vendor/**', '.github/workflows/city-ci.yml']
 permissions:
   contents: read
 jobs:
@@ -16,17 +16,11 @@ jobs:
         with:
           node-version: '22'
       - name: Unit tests
-        run: node --test city-core.test.mjs
-      - name: Validate entry modules and vendor syntax
+        run: node --test city-core.test.mjs tests/core-release.test.mjs
+      - name: Validate application and vendor modules
         run: |
           node --check city-core.mjs
+          node --check city-app.mjs
           node --input-type=module --check < vendor/three.module.js
           node --input-type=module --check < vendor/three.core.min.js
           node --input-type=module --check < vendor/OrbitControls.js
-          python3 - <<'PY'
-          import pathlib, re
-          text = pathlib.Path('city.html').read_text()
-          code = re.search(r'<script type="module">([\s\S]*?)</script>', text).group(1)
-          pathlib.Path('/tmp/warehouse-city-check.mjs').write_text(code)
-          PY
-          node --check /tmp/warehouse-city-check.mjs

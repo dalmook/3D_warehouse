@@ -21,13 +21,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Generate release source once on QA branch
+      - name: Materialize readable release source on QA branch
         if: github.ref == 'refs/heads/fix/city-release-qa'
         run: |
           if [ -f .release/source.tar.xz ]; then
-            tar -xJf .release/source.tar.xz
+            tar --skip-old-files -xJf .release/source.tar.xz
           fi
           python3 scripts/release-city.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/browser.mjs')
+          s=p.read_text().replace("setInputFiles(path);assert.deepEqual", "setInputFiles(path);await page.waitForFunction(name=>window.__warehouseCity.getLayout().projectName===name,expected.projectName);assert.deepEqual")
+          s=s.replace("buffer:Buffer.from(JSON.stringify(fixture))});await page.locator('[data-mode=\"walk\"]')", "buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(()=>window.__warehouseCity.getLayout().objects.some(o=>o.id==='wall'));await page.locator('[data-mode=\"walk\"]')")
+          p.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html classic.html city.html city-app.mjs city.css city-core.mjs scripts tests
+          if [ -f .release/source.tar.xz ]; then git rm .release/source.tar.xz; fi
+          if ! git diff --cached --quiet; then
+            git commit -m 'build: materialize Warehouse City source for browser validation'
+            git push origin HEAD:fix/city-release-qa
+          fi
       - name: Core and syntax tests
         run: |
           node --test city-core.test.mjs tests/core-release.test.mjs
@@ -55,19 +70,6 @@ jobs:
         run: |
           mkdir -p qa-evidence
           gh api repos/dalmook/3D_warehouse/pages > qa-evidence/pages-status.json 2> qa-evidence/pages-status-error.txt || true
-      - name: Commit tested generated application on QA branch only
-        if: success() && github.ref == 'refs/heads/fix/city-release-qa'
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html classic.html city.html city-app.mjs city.css city-core.mjs scripts tests .github/workflows/city-ci.yml
-          if [ -f .release/source.tar.xz ]; then
-            git rm .release/source.tar.xz
-          fi
-          if ! git diff --cached --quiet; then
-            git commit -m 'release: promote browser-verified Warehouse City 9.1 and retain classic editor'
-            git push origin HEAD:fix/city-release-qa
-          fi
       - name: Package source snapshot and test evidence
         if: always()
         run: |
