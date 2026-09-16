@@ -31,10 +31,15 @@ const cube=new THREE.BoxGeometry(1,1,1),sphere=new THREE.SphereGeometry(1,10,8),
 function mat(color){if(!materials.has(color))materials.set(color,new THREE.MeshStandardMaterial({color,roughness:.75}));return materials.get(color);}
 function box(g,w,h,d,x,y,z,color){const m=new THREE.Mesh(cube,mat(color));m.scale.set(Math.max(w,.01),Math.max(h,.01),Math.max(d,.01));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;}
 function person(o){const g=fitAsset('worker',o);const phase=[...(o.id||o.name||'worker')].reduce((n,c)=>n+c.charCodeAt(0),0)%31/30;animateWorker(g,'Idle',phase,1);return g;}
+function distantRack(o){
+ const parts=rackParts(o,true),mesh=new THREE.InstancedMesh(cube,mat('#ffffff'),parts.length),transform=new THREE.Object3D(),color=new THREE.Color();
+ parts.forEach((p,i)=>{transform.position.set(p.x,p.y,p.z);transform.scale.set(p.w,p.h,p.d);transform.updateMatrix();mesh.setMatrixAt(i,transform.matrix);mesh.setColorAt(i,color.set(p.color));});
+ mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();return mesh;
+}
 function model(o){
  let g=new THREE.Group();const w=o.width,d=o.depth,h=o.height,c=o.color;
  if(['worker','forklift','pallet','box','conveyor','worktable','dock','handpallet','plastic-pallet'].includes(o.type))g=fitAsset(o.type,o);
- else if(['rack','boxrack','shelf'].includes(o.type)&&!rackPlan.compact)g=rackAsset(o);
+ else if(['rack','boxrack','shelf'].includes(o.type)&&!rackPlan.compact){g=new THREE.LOD();g.userData.rackLOD=true;g.addLevel(rackAsset(o),0);g.addLevel(distantRack(o),$('qualityPreset').value==='low'?12:80,.15);}
  else if(['rack','boxrack','shelf'].includes(o.type)){
   const parts=rackParts(o,rackPlan.compact);
   const mesh=new THREE.InstancedMesh(cube,mat('#ffffff'),parts.length);
@@ -211,7 +216,7 @@ $('compareScenarios').onclick=()=>{if(!scenarioA){toast('먼저 A 도면을 기�
 $('minimap').onclick=e=>{if(mode!=='walk')return;const c=e.currentTarget,r=c.getBoundingClientRect(),w=layout.warehouse,s=Math.min((c.width-24)/w.width,(c.height-24)/w.depth),x=((e.clientX-r.left)*c.width/r.width-(c.width-w.width*s)/2)/s,y=((e.clientY-r.top)*c.height/r.height-(c.height-w.depth*s)/2)/s;if(!blocked(x,y,layout)){walk={x,y};}else toast('이 위치는 막혀 있습니다. 통로를 선택하세요.');};
 $('qualityDemo').onclick=()=>{if(confirm('현재 도면을 작은 시연 구역으로 바꿀까요? Undo로 복구할 수 있습니다.'))replace(qualityDemo());};
 $('operationKind').onchange=()=>{operationKind=$('operationKind').value;rebuild();setupSimulation();syncPlayLabels();};
-$('qualityPreset').onchange=()=>{const q=$('qualityPreset').value;renderer.setPixelRatio(Math.min(devicePixelRatio,q==='high'?2:q==='low'?1:1.5));renderer.shadowMap.enabled=q!=='low';sun.shadow.mapSize.setScalar(q==='high'?2048:1024);sun.shadow.map?.dispose();sun.shadow.map=null;};
+$('qualityPreset').onchange=()=>{const q=$('qualityPreset').value;for(const g of groups.values())if(g.userData.rackLOD)g.levels[1].distance=q==='low'?12:80;renderer.setPixelRatio(Math.min(devicePixelRatio,q==='high'?2:q==='low'?1:1.5));renderer.shadowMap.enabled=q!=='low';sun.shadow.mapSize.setScalar(q==='high'?2048:1024);sun.shadow.map?.dispose();sun.shadow.map=null;};
 $('viewpoint').onchange=()=>{const kind=$('viewpoint').value,source=layout.objects.find(o=>o.type===kind);if(!source)return;const live=sim?.agents.find(a=>a.id===source.id),o=live?{...source,x:live.x,y:live.y}:source;if(mode!=='walk')setMode('walk');const candidates=live?[.7,-.7,1.5,-1.5,0,3.14].map(angle=>({x:o.x+Math.sin((live.heading||0)+angle)*(kind==='forklift'?4:3),y:o.y+Math.cos((live.heading||0)+angle)*(kind==='forklift'?4:3)})):[{x:o.x,y:o.y+o.depth/2+2.8},{x:o.x+o.width/2+2.8,y:o.y},{x:o.x,y:o.y-o.depth/2-2.8}];const p=candidates.find(p=>!blocked(p.x,p.y,layout)&&(!sim||sim.agents.every(a=>Math.hypot(a.x-p.x,a.y-p.y)>2)));if(p){walk=p;yaw=Math.atan2(p.x-o.x,p.y-o.y);pitch=-.05;}};
 $('walkFov').oninput=()=>{perspective.fov=Number($('walkFov').value);perspective.updateProjectionMatrix();};
 const requestedQuality=new URLSearchParams(location.search).get('quality');if(['low','standard','high'].includes(requestedQuality)){$('qualityPreset').value=requestedQuality;$('qualityPreset').onchange();}
