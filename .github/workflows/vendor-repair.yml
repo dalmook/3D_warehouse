@@ -1,0 +1,61 @@
+name: Restore pinned Three.js distribution
+on:
+  push:
+    branches: [feat/warehouse-city-v9]
+    paths: [.github/workflows/vendor-repair.yml]
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/warehouse-city-v9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore official three 0.185.1 package files
+        shell: bash
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d)
+          npm pack three@0.185.1 --ignore-scripts --pack-destination "$work"
+          tar -xzf "$work/three-0.185.1.tgz" -C "$work"
+          cp "$work/package/build/three.module.min.js" vendor/three.module.js
+          cp "$work/package/build/three.core.min.js" vendor/three.core.min.js
+          cp "$work/package/examples/jsm/controls/OrbitControls.js" vendor/OrbitControls.js
+          cp "$work/package/LICENSE" licenses/THREE-LICENSE.txt
+          for file in vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
+            node --input-type=module --check < "$file"
+          done
+          node --test city-core.test.mjs
+          python3 - <<'PY'
+          import pathlib, re
+          text = pathlib.Path('city.html').read_text()
+          code = re.search(r'<script type="module">([\s\S]*?)</script>', text).group(1)
+          pathlib.Path('/tmp/warehouse-city-check.mjs').write_text(code)
+          PY
+          node --check /tmp/warehouse-city-check.mjs
+      - name: Commit only restored dependencies
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js licenses/THREE-LICENSE.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: restore complete Three.js 0.185.1 modules'
+            git push origin HEAD:feat/warehouse-city-v9
+          fi
+      - name: Package static app for verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: warehouse-city-static-review
+          retention-days: 7
+          path: |
+            city.html
+            city-core.mjs
+            city-core.test.mjs
+            vendor/
+            licenses/
