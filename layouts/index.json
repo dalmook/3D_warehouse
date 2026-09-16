@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "layouts": [
+    {
+      "id": "standard-distribution-center",
+      "name": "표준 물류센터 예제",
+      "file": "standard-distribution-center.json",
+      "description": "팔레트 랙, 박스랙, 검수·포장 구역과 사무실·휴게실·탈의실을 함께 배치한 기준 예제입니다.",
+      "location": "샘플",
+      "category": "표준형",
+      "updatedAt": "2026-07-15",
+      "warehouse": {
+        "width": 36,
+        "depth": 24,
+        "height": 9
+      },
+      "tags": ["팔레트랙", "박스랙", "검수", "포장", "사무실", "휴게실"]
+    }
+  ]
+}
