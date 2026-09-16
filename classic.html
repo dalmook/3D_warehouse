@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta
+      name="description"
+      content="브라우저에서 창고 설비와 안전 설비를 배치하고 팔레트·박스 위에 박스를 직접 쌓는 3D 물류센터 레이아웃 도구"
+    />
+    <title>Warehouse Studio · 3D 창고 설계</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+            "three": "./vendor/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand" aria-label="Warehouse Studio">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="brand-copy">
+            <strong>WAREHOUSE</strong>
+            <small>STUDIO 3D · V8.3 STATIC</small>
+          </span>
+        </div>
+
+        <label class="project-title-wrap">
+          <span class="sr-only">프로젝트 이름</span>
+          <input id="project-name" class="project-title" value="My Warehouse" maxlength="60" />
+          <span id="save-state" class="save-state"><i></i> 저장됨</span>
+        </label>
+
+        <nav class="header-actions" aria-label="프로젝트 작업">
+          <button id="undo-btn" class="icon-btn" type="button" title="실행 취소 (Ctrl+Z)" aria-label="실행 취소">↶</button>
+          <button id="redo-btn" class="icon-btn" type="button" title="다시 실행 (Ctrl+Y)" aria-label="다시 실행">↷</button>
+          <span class="header-divider"></span>
+          <button id="new-btn" class="header-btn secondary" type="button">새 도면</button>
+          <button id="layouts-btn" class="header-btn secondary" type="button">기준 도면</button>
+          <button id="import-btn" class="header-btn secondary" type="button">파일 불러오기</button>
+          <button id="export-btn" class="header-btn secondary" type="button">내보내기</button>
+          <button id="save-btn" class="header-btn primary" type="button"><span>●</span> 브라우저 저장</button>
+          <button id="theme-btn" class="icon-btn" type="button" title="화면 테마 전환" aria-label="화면 테마 전환">◐</button>
+          <button id="help-btn" class="icon-btn" type="button" title="사용 방법" aria-label="사용 방법">?</button>
+        </nav>
+        <input id="file-input" type="file" accept="application/json,.json" hidden />
+      </header>
+
+      <div class="workspace">
+        <aside class="left-panel panel" aria-label="설비 라이브러리">
+          <section class="panel-section warehouse-settings">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">SPACE</p>
+                <h2>창고 규격</h2>
+              </div>
+              <span class="unit-chip">meter</span>
+            </div>
+            <div class="dimension-grid">
+              <label><span>가로 X</span><input id="warehouse-width" type="number" min="5" max="300" step="1" value="36" /></label>
+              <label><span>세로 Y</span><input id="warehouse-depth" type="number" min="5" max="300" step="1" value="24" /></label>
+              <label><span>높이 Z</span><input id="warehouse-height" type="number" min="2" max="50" step="0.5" value="9" /></label>
+            </div>
+            <button id="apply-warehouse-btn" class="wide-btn" type="button">규격 적용</button>
+          </section>
+
+          <section class="panel-section library-section">
+            <div class="section-title-row">
+              <div>
+                <p class="eyebrow">LIBRARY</p>
+                <h2>설비 추가</h2>
+              </div>
+              <span class="drag-hint">끌어서 배치</span>
+            </div>
+
+            <div class="asset-filter-panel" aria-label="설비 필터">
+              <label><span class="sr-only">설비 카테고리</span>
+                <select id="asset-category-filter">
+                  <option value="all">전체 카테고리</option>
+                  <option value="logistics">물류 설비</option>
+                  <option value="process">검수·포장·작업</option>
+                  <option value="space">공간·구역</option>
+                  <option value="support">안전·IT·편의</option>
+                </select>
+              </label>
+              <label><span class="sr-only">설비 검색</span><input id="asset-search" type="search" placeholder="설비 검색" autocomplete="off" /></label>
+              <small id="asset-filter-count">0개 설비</small>
+            </div>
+
+            <div class="asset-grid" id="asset-grid">
+              <p class="asset-group-title" data-category="logistics">물류 설비</p>
+              <button class="asset-card" type="button" draggable="true" data-object-type="rack">
+                <span class="asset-icon icon-rack" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><strong>팔레트 랙</strong><small>Pallet rack</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="boxrack">
+                <span class="asset-icon glyph amber" aria-hidden="true">▥</span>
+                <span><strong>박스랙</strong><small>Carton rack</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="shelf">
+                <span class="asset-icon icon-shelf" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><strong>선반</strong><small>Shelving</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="conveyor">
+                <span class="asset-icon icon-conveyor" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><strong>컨베이어</strong><small>Conveyor</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="pallet">
+                <span class="asset-icon icon-pallet" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><strong>팔레트</strong><small>Pallet</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="box">
+                <span class="asset-icon icon-box" aria-hidden="true"><i></i></span>
+                <span><strong>박스</strong><small>Carton box</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="forklift">
+                <span class="asset-icon icon-forklift" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><strong>지게차</strong><small>Forklift</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="dock">
+                <span class="asset-icon icon-dock" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><strong>도크</strong><small>Loading dock</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="worktable">
+                <span class="asset-icon icon-table" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span><strong>작업대</strong><small>Work table</small></span>
+              </button>
+              <p class="asset-group-title" data-category="process">검수 · 포장 · 작업 설비</p>
+              <button class="asset-card" type="button" draggable="true" data-object-type="cleanbooth">
+                <span class="asset-icon glyph mint" aria-hidden="true">▦</span>
+                <span><strong>클린부스</strong><small>Clean booth</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="chair">
+                <span class="asset-icon glyph blue" aria-hidden="true">◒</span>
+                <span><strong>의자</strong><small>Work chair</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="tapingmachine">
+                <span class="asset-icon glyph blue" aria-hidden="true">≡</span>
+                <span><strong>테이핑기</strong><small>Carton sealer</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="volumechecker">
+                <span class="asset-icon glyph violet" aria-hidden="true">⌗</span>
+                <span><strong>볼륨체크기</strong><small>Volume checker</small></span>
+              </button>
+              <button class="asset-card wide" type="button" draggable="true" data-object-type="ers">
+                <span class="asset-icon glyph violet" aria-hidden="true">◎</span>
+                <span><strong>ERS 촬영 설비</strong><small>Evidence Record System</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="heavyscale">
+                <span class="asset-icon glyph blue" aria-hidden="true">▰</span>
+                <span><strong>고중량 전자저울</strong><small>Heavy-duty scale</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="barcodescanner">
+                <span class="asset-icon glyph mint" aria-hidden="true">⌁</span>
+                <span><strong>무선 바코드 스캐너</strong><small>Wireless scanner</small></span>
+              </button>
+              <p class="asset-group-title" data-category="space">공간 · 구역 구성</p>
+              <button class="asset-card" type="button" draggable="true" data-object-type="breakroom">
+                <span class="asset-icon glyph amber" aria-hidden="true">☕</span>
+                <span><strong>휴게실</strong><small>Break room</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="office">
+                <span class="asset-icon glyph blue" aria-hidden="true">▣</span>
+                <span><strong>사무실</strong><small>Office</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="lockerroom">
+                <span class="asset-icon glyph violet" aria-hidden="true">▥</span>
+                <span><strong>탈의실</strong><small>Locker room</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="partition">
+                <span class="asset-icon glyph mint" aria-hidden="true">╫</span>
+                <span><strong>파티션</strong><small>Space partition</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="textlabel">
+                <span class="asset-icon glyph blue" aria-hidden="true">T</span>
+                <span><strong>일반 텍스트</strong><small>Free text label</small></span>
+              </button>
+              <p class="asset-group-title" data-category="support">안전 · IT · 편의 설비</p>
+              <button class="asset-card" type="button" draggable="true" data-object-type="person">
+                <span class="asset-icon glyph mint" aria-hidden="true">●</span>
+                <span><strong>작업자</strong><small>Warehouse worker</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="computer">
+                <span class="asset-icon glyph blue" aria-hidden="true">▣</span>
+                <span><strong>컴퓨터</strong><small>Computer</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="printer">
+                <span class="asset-icon glyph" aria-hidden="true">▱</span>
+                <span><strong>라벨 프린터</strong><small>Label printer</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="officeprinter">
+                <span class="asset-icon glyph blue" aria-hidden="true">▱</span>
+                <span><strong>일반 프린터</strong><small>Office printer</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="cctv">
+                <span class="asset-icon glyph blue" aria-hidden="true">◉</span>
+                <span><strong>CCTV</strong><small>Security camera</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="extinguisher">
+                <span class="asset-icon glyph red" aria-hidden="true">!</span>
+                <span><strong>소화기</strong><small>Fire extinguisher</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="cone">
+                <span class="asset-icon glyph amber" aria-hidden="true">▲</span>
+                <span><strong>안전콘</strong><small>Safety cone</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="barrier">
+                <span class="asset-icon glyph amber" aria-hidden="true">╫</span>
+                <span><strong>안전 펜스</strong><small>Safety barrier</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="firstaid">
+                <span class="asset-icon glyph mint" aria-hidden="true">+</span>
+                <span><strong>구급함</strong><small>First aid</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="electrical">
+                <span class="asset-icon glyph amber" aria-hidden="true">ϟ</span>
+                <span><strong>분전반</strong><small>Electrical panel</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="trashbin">
+                <span class="asset-icon glyph mint" aria-hidden="true">▧</span>
+                <span><strong>폐기물함</strong><small>Waste bin</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="handtruck">
+                <span class="asset-icon glyph amber" aria-hidden="true">⌁</span>
+                <span><strong>핸드 팔레트</strong><small>Pallet jack</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="door">
+                <span class="asset-icon glyph mint" aria-hidden="true">▯</span>
+                <span><strong>사람 출입문</strong><small>Pedestrian door</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="sign">
+                <span class="asset-icon glyph blue" aria-hidden="true">i</span>
+                <span><strong>안내 표지판</strong><small>Editable sign</small></span>
+              </button>
+              <button class="asset-card" type="button" draggable="true" data-object-type="warning">
+                <span class="asset-icon glyph amber" aria-hidden="true">!</span>
+                <span><strong>경고 표지판</strong><small>Warning sign</small></span>
+              </button>
+              <button class="asset-card wide" type="button" draggable="true" data-object-type="safety">
+                <span class="asset-icon icon-zone" aria-hidden="true"><i></i></span>
+                <span><strong>안전·작업 구역</strong><small>Floor zone</small></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="panel-section quick-section">
+            <p class="eyebrow">QUICK TOOLS</p>
+            <button id="stack-open-btn" class="feature-btn" type="button">
+              <span class="feature-icon">▦</span>
+              <span><strong>박스 자동 적재</strong><small>박스 규격과 수량으로 팔레트 적재</small></span>
+              <b>›</b>
+            </button>
+          </section>
+        </aside>
+
+        <main class="viewport-column">
+          <section id="viewport" class="viewport" aria-label="3D 창고 편집 화면">
+            <canvas id="three-canvas" tabindex="0"></canvas>
+
+            <div class="viewport-toolbar toolbar-left" aria-label="보기 방식">
+              <button id="view-3d-btn" class="tool-btn active" type="button">3D</button>
+              <button id="view-top-btn" class="tool-btn" type="button">TOP</button>
+              <span class="toolbar-divider"></span>
+              <button id="fit-btn" class="tool-btn icon-only" type="button" title="전체 보기" aria-label="전체 보기">⌗</button>
+              <span class="toolbar-divider"></span>
+              <button id="selection-lock-btn" class="tool-btn lock-tool" type="button" title="전체 객체 선택 잠금 (L)" aria-label="전체 객체 선택 잠금" aria-pressed="false">🔓 전체 잠금</button>
+            </div>
+
+            <div class="viewport-toolbar toolbar-right" aria-label="격자 설정">
+              <label class="snap-control">SNAP
+                <select id="snap-select" aria-label="이동 격자 단위">
+                  <option value="0">OFF</option>
+                  <option value="0.1">0.1m</option>
+                  <option value="0.5" selected>0.5m</option>
+                  <option value="1">1.0m</option>
+                </select>
+              </label>
+              <span class="toolbar-divider"></span>
+              <button id="grid-btn" class="tool-btn icon-only active" type="button" title="격자 표시" aria-label="격자 표시">#</button>
+              <button id="dimension-btn" class="tool-btn" type="button" title="모든 객체 치수 표시" aria-label="모든 객체 치수 표시" aria-pressed="false">치수</button>
+              <button id="screenshot-btn" class="tool-btn icon-only" type="button" title="3D 화면 이미지 저장" aria-label="3D 화면 이미지 저장">◎</button>
+            </div>
+
+            <div id="view-cube" class="view-cube" aria-hidden="true">
+              <span class="cube-top">TOP</span><span class="cube-front">FRONT</span><span class="cube-side">SIDE</span>
+            </div>
+
+            <div id="selection-chip" class="selection-chip" hidden>
+              <span id="selection-dot"></span>
+              <strong id="selection-label">팔레트 랙 01</strong>
+              <small id="selection-position">X 0.0 · Y 0.0</small>
+            </div>
+
+            <div id="canvas-hint" class="canvas-hint">
+              <span>마우스 왼쪽</span> 선택·이동
+              <i></i><span>마우스 오른쪽</span> 시점 회전
+              <i></i><span>휠</span> 확대·축소
+            </div>
+            <div id="drop-indicator" class="drop-indicator">여기에 놓아 배치</div>
+            <div id="stack-drop-hint" class="stack-drop-hint" hidden><span>▣</span><strong id="stack-drop-label">팔레트 위에 놓기</strong><small id="stack-drop-height">Z 0.14m</small></div>
+            <div id="toast" class="toast" role="status" aria-live="polite"></div>
+          </section>
+
+          <section class="metrics-bar" aria-label="창고 배치 요약">
+            <article><span class="metric-icon mint">▦</span><div><small>보관 로케이션</small><strong id="metric-locations">0</strong></div></article>
+            <article><span class="metric-icon amber">▣</span><div><small>팔레트</small><strong id="metric-pallets">0</strong></div></article>
+            <article class="capacity-metric"><span class="metric-icon blue">Σ</span><div><small>총 BOX 수용량</small><strong id="metric-boxes">0</strong><em id="metric-capacity-detail">박스랙 0 · 팔레트 0 · 바닥 0</em></div></article>
+            <article><span class="metric-icon violet">◇</span><div><small>배치 설비</small><strong id="metric-objects">0</strong></div></article>
+            <article class="utilization-metric">
+              <div class="utilization-head"><div><small>면적 점유율</small><strong id="metric-utilization">0%</strong></div><span id="metric-area">0 / 0 m²</span></div>
+              <div class="progress-track"><i id="metric-progress"></i></div>
+            </article>
+          </section>
+        </main>
+
+        <aside class="right-panel panel" aria-label="속성 편집기">
+          <section id="no-selection" class="empty-inspector">
+            <div class="empty-visual"><span></span><i></i><b></b></div>
+            <p class="eyebrow">PROPERTIES</p>
+            <h2>객체를 선택하세요</h2>
+            <p>3D 화면이나 아래 객체 목록에서 설비를 선택하면 위치와 규격을 정확하게 수정할 수 있습니다.</p>
+          </section>
+
+          <div id="selection-inspector" hidden>
+            <section class="inspector-header panel-section">
+              <div class="selection-type-row">
+                <span id="inspector-type" class="type-chip">PALLET RACK</span>
+                <button id="more-btn" class="mini-icon-btn" type="button" title="객체 복제" aria-label="객체 복제">⧉</button>
+              </div>
+              <input id="object-name" class="object-name-input" value="팔레트 랙 01" maxlength="60" />
+              <button id="object-lock-btn" class="wide-btn object-lock-btn" type="button" aria-pressed="false">🔓 이 객체 잠금</button>
+              <div id="collision-alert" class="collision-alert" hidden><span>!</span> 다른 설비와 겹쳐 있습니다.</div>
+            </section>
+
+            <section class="panel-section inspector-section">
+              <div class="section-title-row compact"><h3>위치 및 회전</h3><span>meter / degree</span></div>
+              <div class="field-grid four transform-grid">
+                <label><span><i class="axis x">X</i> 가로</span><input id="position-x" type="number" step="0.1" /></label>
+                <label><span><i class="axis y">Y</i> 세로</span><input id="position-y" type="number" step="0.1" /></label>
+                <label><span><i class="axis z">Z</i> 높이</span><input id="position-z" type="number" min="0" step="0.1" /></label>
+                <label><span><i class="axis r">R</i> 회전</span><input id="rotation-y" type="number" step="5" /></label>
+              </div>
+              <div class="rotation-presets" aria-label="빠른 회전">
+                <button type="button" data-rotation="0">0°</button>
+                <button type="button" data-rotation="45">45°</button>
+                <button type="button" data-rotation="90">90°</button>
+                <button type="button" data-rotation="180">180°</button>
+              </div>
+              <button id="ground-object-btn" class="wide-btn compact-btn ground-object-btn" type="button">↓ 바닥으로 내리기</button>
+            </section>
+
+            <section class="panel-section inspector-section">
+              <div class="section-title-row compact"><h3>객체 규격</h3><span>meter</span></div>
+              <div class="field-grid three">
+                <label><span>가로 W</span><input id="object-width" type="number" min="0.05" step="0.1" /></label>
+                <label><span>세로 D</span><input id="object-depth" type="number" min="0.05" step="0.1" /></label>
+                <label><span>높이 H</span><input id="object-height" type="number" min="0.02" step="0.1" /></label>
+              </div>
+              <label class="color-field"><span>표시 색상</span><input id="object-color" type="color" /><b id="color-value">#24C98A</b></label>
+            </section>
+
+            <section id="rack-fields" class="panel-section inspector-section" hidden>
+              <div class="section-title-row compact"><h3 id="rack-config-title">랙 구성</h3><span>자동 계산</span></div>
+              <div class="field-grid three">
+                <label><span id="rack-bays-label">베이 수</span><input id="rack-bays" type="number" min="1" max="30" step="1" /></label>
+                <label><span id="rack-levels-label">단 수</span><input id="rack-levels" type="number" min="1" max="12" step="1" /></label>
+                <label><span id="rack-pallets-label">단당 PLT</span><input id="rack-pallets" type="number" min="1" max="20" step="1" /></label>
+              </div>
+              <div class="calculated-card"><span id="rack-capacity-label">예상 보관 로케이션</span><strong id="rack-capacity">0 PLT</strong></div>
+            </section>
+
+            <section id="stack-fields" class="panel-section inspector-section" hidden>
+              <div class="section-title-row compact"><h3>적재 결과</h3><span>계산 완료</span></div>
+              <dl class="stack-result-list">
+                <div><dt>층당 박스</dt><dd id="stack-per-layer">0 BOX</dd></div>
+                <div><dt>적재 층수</dt><dd id="stack-layers">0 LAYER</dd></div>
+                <div><dt>총 적재</dt><dd id="stack-total">0 BOX</dd></div>
+              </dl>
+            </section>
+
+            <section id="pallet-capacity-fields" class="panel-section inspector-section" hidden>
+              <div class="section-title-row compact"><h3>팔레트 BOX 수용량</h3><span>자동 계산</span></div>
+              <div class="field-grid two">
+                <label><span>박스 가로 W</span><input id="pallet-box-width" type="number" min="0.02" step="0.01" /></label>
+                <label><span>박스 세로 D</span><input id="pallet-box-depth" type="number" min="0.02" step="0.01" /></label>
+                <label><span>박스 높이 H</span><input id="pallet-box-height" type="number" min="0.02" step="0.01" /></label>
+                <label><span>최대 총높이</span><input id="pallet-max-height" type="number" min="0.2" step="0.1" /></label>
+              </div>
+              <div class="calculated-card pallet-capacity-card"><span id="pallet-capacity-detail">층당 0 × 0층</span><strong id="pallet-capacity-total">0 BOX</strong></div>
+              <p class="capacity-note">팔레트 높이를 포함한 최대 총높이 기준이며, 더 많이 들어가는 박스 방향을 적용합니다.</p>
+            </section>
+
+            <section id="manual-stack-fields" class="panel-section inspector-section" hidden>
+              <div class="section-title-row compact"><h3>수동 적재</h3><span id="box-elevation">Z 0.00m</span></div>
+              <div class="support-card"><span>현재 받침</span><strong id="box-support-name">바닥</strong><small>박스를 팔레트나 다른 박스 위로 끌어 놓으세요.</small></div>
+              <button id="unstack-btn" class="wide-btn compact-btn" type="button">바닥으로 내리기</button>
+            </section>
+
+            <section id="sign-fields" class="panel-section inspector-section" hidden>
+              <div class="section-title-row compact"><h3 id="text-config-title">표지판 문구</h3><span id="text-limit-label">최대 24자</span></div>
+              <label class="full-field"><span>직접 입력</span><input id="sign-text" type="text" maxlength="40" placeholder="표지판 문구" /></label>
+              <label id="sign-preset-row" class="full-field"><span>문구 빠른 선택</span>
+                <select id="sign-preset">
+                  <option value="">직접 입력</option>
+                  <option value="출입구">출입구</option>
+                  <option value="지게차 주의">지게차 주의</option>
+                  <option value="출입 금지">출입 금지</option>
+                  <option value="안전모 착용">안전모 착용</option>
+                  <option value="비상구">비상구</option>
+                  <option value="보행자 통로">보행자 통로</option>
+                  <option value="화기 엄금">화기 엄금</option>
+                </select>
+              </label>
+            </section>
+
+            <section class="panel-section object-actions">
+              <button id="duplicate-btn" type="button">⧉ 복제</button>
+              <button id="delete-btn" class="danger" type="button">⌫ 삭제</button>
+            </section>
+          </div>
+
+          <section class="scene-list-section panel-section">
+            <div class="section-title-row compact">
+              <div><p class="eyebrow">SCENE</p><h3>배치 객체</h3></div>
+              <span id="object-count-chip">0</span>
+            </div>
+            <div id="scene-object-list" class="scene-object-list"></div>
+          </section>
+        </aside>
+      </div>
+
+      <footer class="app-footer">
+        <div><span class="status-dot"></span><strong>LOCAL MODE</strong><span>데이터는 이 브라우저에만 저장됩니다.</span></div>
+        <div class="shortcut-list"><span><kbd>L</kbd> 전체 잠금</span><span><kbd>Del</kbd> 삭제</span><span><kbd>Ctrl</kbd> + <kbd>D</kbd> 복제</span><span><kbd>Ctrl</kbd> + <kbd>Z</kbd> 취소</span></div>
+      </footer>
+    </div>
+
+    <dialog id="stack-dialog" class="modal stack-modal">
+      <form id="stack-form" method="dialog">
+        <div class="modal-header">
+          <div><p class="eyebrow">AUTO PALLETIZING</p><h2>박스 자동 적재</h2><p>팔레트와 박스 규격을 입력하면 가장 많이 들어가는 방향으로 자동 배치합니다.</p></div>
+          <button class="modal-close" type="button" data-close-dialog="stack-dialog" aria-label="닫기">×</button>
+        </div>
+        <div class="modal-body stack-body">
+          <section>
+            <h3><span>01</span> 팔레트 규격</h3>
+            <div class="modal-field-grid three">
+              <label><span>가로 W</span><input id="stack-pallet-width" type="number" min="0.2" step="0.01" value="1.2" required /></label>
+              <label><span>세로 D</span><input id="stack-pallet-depth" type="number" min="0.2" step="0.01" value="1.0" required /></label>
+              <label><span>최대 높이</span><input id="stack-max-height" type="number" min="0.2" step="0.1" value="1.8" required /></label>
+            </div>
+          </section>
+          <section>
+            <h3><span>02</span> 박스 규격 및 수량</h3>
+            <div class="modal-field-grid four">
+              <label><span>가로 W</span><input id="stack-box-width" type="number" min="0.02" step="0.01" value="0.4" required /></label>
+              <label><span>세로 D</span><input id="stack-box-depth" type="number" min="0.02" step="0.01" value="0.3" required /></label>
+              <label><span>높이 H</span><input id="stack-box-height" type="number" min="0.02" step="0.01" value="0.25" required /></label>
+              <label><span>수량</span><input id="stack-box-count" type="number" min="1" max="2000" step="1" value="48" required /></label>
+            </div>
+          </section>
+          <section class="stack-preview-card">
+            <div class="stack-mini-visual" id="stack-mini-visual"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div><small>예상 적재 결과</small><strong id="stack-preview-title">12 BOX × 4 LAYER</strong><p id="stack-preview-detail">총 48 BOX · 높이 1.15m · 적재율 100%</p></div>
+          </section>
+          <label id="replace-pallet-row" class="check-row" hidden><input id="replace-pallet-check" type="checkbox" checked /><span><b>선택한 팔레트 위치에 배치</b><small>기존 팔레트는 적재 결과로 교체됩니다.</small></span></label>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn secondary" type="button" data-close-dialog="stack-dialog">취소</button>
+          <button class="modal-btn primary" type="submit">3D 적재 생성</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="layouts-dialog" class="modal layouts-modal">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">REFERENCE LAYOUTS</p>
+          <h2>기준 물류센터 도면</h2>
+          <p><code>layouts/index.json</code>에 등록된 도면을 불러옵니다. 불러온 도면은 자유롭게 수정할 수 있으며 원본 JSON은 변경되지 않습니다.</p>
+        </div>
+        <button class="modal-close" type="button" data-close-dialog="layouts-dialog" aria-label="닫기">×</button>
+      </div>
+      <div class="modal-body layouts-body">
+        <div class="layouts-toolbar">
+          <label class="layout-search-wrap">
+            <span class="sr-only">기준 도면 검색</span>
+            <input id="layout-search" type="search" placeholder="센터명, 지역, 태그 검색" autocomplete="off" />
+          </label>
+          <span id="layout-count" class="layout-count">0개</span>
+          <button id="layout-refresh-btn" class="layout-refresh-btn" type="button">목록 새로고침</button>
+        </div>
+        <div id="layout-status" class="layout-status" role="status">기준 도면 목록을 준비하고 있습니다.</div>
+        <div id="layout-list" class="layout-list" aria-live="polite"></div>
+        <aside class="layouts-guide">
+          <strong>새 기준 도면 추가 방법</strong>
+          <span>현재 도면 JSON 저장 → 파일을 <code>layouts/</code>에 업로드 → <code>layouts/index.json</code>에 한 줄 등록</span>
+          <small>GitHub Pages는 정적 사이트라 저장소에 직접 쓰려면 별도의 GitHub 로그인·인증 서버가 필요합니다. 토큰을 웹 코드에 넣으면 노출되므로 현재 방식이 안전합니다.</small>
+        </aside>
+      </div>
+      <div class="modal-footer layouts-footer">
+        <button id="layout-example-btn" class="modal-btn secondary" type="button">기본 예제 열기</button>
+        <span></span>
+        <button id="layout-export-btn" class="modal-btn secondary" type="button">현재 도면 JSON 저장</button>
+        <button class="modal-btn primary" type="button" data-close-dialog="layouts-dialog">닫기</button>
+      </div>
+    </dialog>
+
+    <dialog id="help-dialog" class="modal help-modal">
+      <div class="modal-header">
+        <div><p class="eyebrow">QUICK START</p><h2>3분 사용 안내</h2><p>별도 설치나 서버 없이 현재 브라우저에서 바로 사용할 수 있습니다.</p></div>
+        <button class="modal-close" type="button" data-close-dialog="help-dialog" aria-label="닫기">×</button>
+      </div>
+      <div class="modal-body help-grid">
+        <article><span>01</span><div><h3>창고 크기 설정</h3><p>왼쪽에서 실제 창고의 가로·세로·높이를 입력하고 규격 적용을 누릅니다.</p></div></article>
+        <article><span>02</span><div><h3>설비·박스 배치</h3><p>카테고리나 검색으로 설비를 찾고 공중에 추가한 뒤 위치를 조정합니다. 박스는 팔레트나 다른 박스 위로 끌어 수동 적재합니다.</p></div></article>
+        <article><span>03</span><div><h3>수용량 확인</h3><p>박스랙과 팔레트의 적재 조건을 설정하면 하단에 박스랙·팔레트·바닥 박스를 합친 총 BOX 수용량이 표시됩니다.</p></div></article>
+        <article><span>04</span><div><h3>잠금·치수·저장</h3><p>전체 잠금으로 카메라만 조작하거나 객체별 잠금을 적용하고, 치수 표시를 켜서 검토한 뒤 JSON 또는 브라우저에 저장합니다.</p></div></article>
+      </div>
+      <div class="modal-footer"><button class="modal-btn primary" type="button" data-close-dialog="help-dialog">시작하기</button></div>
+    </dialog>
+
+    <div id="mobile-notice" class="mobile-notice">
+      <div class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h1>넓은 화면에서 열어주세요</h1>
+      <p>정확한 3D 배치를 위해 태블릿 가로 모드 또는 PC 브라우저 사용을 권장합니다.</p>
+      <button type="button" id="mobile-continue">그래도 계속 사용</button>
+    </div>
+
+    <script src="./boot.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
