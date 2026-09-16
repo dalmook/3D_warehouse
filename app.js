@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.185.0/examples/jsm/controls/OrbitControls.js";
+import { OrbitControls } from "./vendor/OrbitControls.js";
 import {
   ASSET_DEFINITIONS,
   calculateStackLayout,

@@ -13,8 +13,6 @@
 
 GitHub Enterprise에서는 조직의 Pages 정책에 따라 메뉴 이름이나 주소 형식이 조금 다를 수 있지만, 저장소 최상위의 `index.html`을 배포하는 방식은 같습니다.
 
-3D 렌더링 라이브러리 Three.js는 GitHub Pages에서 jsDelivr CDN으로 불러옵니다. 사내망에서 `cdn.jsdelivr.net`이 차단돼 있다면 해당 도메인을 허용 목록에 추가해 주세요.
-
 ## 주요 기능
 
 - 창고 가로·세로·높이 설정
