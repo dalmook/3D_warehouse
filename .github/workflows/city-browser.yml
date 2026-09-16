@@ -21,26 +21,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Materialize readable release source on QA branch
+      - name: Apply synchronous token-clear hardening on QA branch
         if: github.ref == 'refs/heads/fix/city-release-qa'
         run: |
-          if [ -f .release/source.tar.xz ]; then
-            tar --skip-old-files -xJf .release/source.tar.xz
-          fi
-          python3 scripts/release-city.py
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('tests/browser.mjs')
-          s=p.read_text().replace("setInputFiles(path);assert.deepEqual", "setInputFiles(path);await page.waitForFunction(name=>window.__warehouseCity.getLayout().projectName===name,expected.projectName);assert.deepEqual")
-          s=s.replace("buffer:Buffer.from(JSON.stringify(fixture))});await page.locator('[data-mode=\"walk\"]')", "buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(()=>window.__warehouseCity.getLayout().objects.some(o=>o.id==='wall'));await page.locator('[data-mode=\"walk\"]')")
+          p=Path('city-app.mjs')
+          s=p.read_text().replace("$('ghClose').onclick=()=>$('githubDialog').close();", "$('ghClose').onclick=()=>{$('ghToken').value='';$('ghConsent').checked=false;$('githubDialog').close();};")
           p.write_text(s)
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html classic.html city.html city-app.mjs city.css city-core.mjs scripts tests
-          if [ -f .release/source.tar.xz ]; then git rm .release/source.tar.xz; fi
+          git add city-app.mjs
           if ! git diff --cached --quiet; then
-            git commit -m 'build: materialize Warehouse City source for browser validation'
+            git commit -m 'fix: clear GitHub credentials synchronously when closing the save dialog'
             git push origin HEAD:fix/city-release-qa
           fi
       - name: Core and syntax tests
