@@ -1,0 +1,14 @@
+{
+  "headCommit": "c190e42885ade3863cc8cd7e011f558545d06d9d",
+  "workflowRun": 35157871187,
+  "browserJob": 105001500361,
+  "browserJobConclusion": "success",
+  "unitAndSyntax": "success",
+  "softwareLowPresetBrowserStressClassic": "success",
+  "liveGitHubCreateUpdateLoadTokenHygiene": "success",
+  "temporaryBranchPrefixAfterCleanup": [],
+  "deploy": "skipped",
+  "published": "skipped",
+  "reason": "Pages configuration unavailable; public HTML and worker.glb returned 404",
+  "source": "Connected GitHub Actions jobs/logs API and git/matching-refs verification"
+}

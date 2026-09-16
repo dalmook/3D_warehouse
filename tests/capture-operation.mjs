@@ -1,0 +1,13 @@
+import {chromium} from 'playwright';
+import fs from 'node:fs/promises';
+await fs.mkdir('qa-evidence/operation',{recursive:true});
+const b=await chromium.launch({channel:'msedge'}),c=await b.newContext({viewport:{width:1440,height:900},recordVideo:{dir:'qa-evidence/operation',size:{width:1440,height:900}}}),p=await c.newPage();
+p.on('dialog',d=>d.accept());
+await p.goto('http://127.0.0.1:4173');await p.waitForFunction(()=>window.__warehouseCity);
+await p.locator('#qualityDemo').click();await p.locator('[data-mode="sim"]').click();await p.locator('#operationKind').selectOption('tasks');await p.locator('#runBtn').click();
+await p.waitForFunction(()=>window.__warehouseCity.getLogistics().units.some(u=>u.state==='transport'));
+await p.locator('[data-mode="walk"]').click();await p.locator('#walkFov').fill('70');await p.locator('#walkFov').dispatchEvent('input');await p.locator('#viewpoint').selectOption('forklift');
+await p.waitForTimeout(4000);await p.locator('#viewpoint').selectOption('worker');await p.waitForTimeout(2500);
+await p.locator('#viewpoint').selectOption('rack');await p.locator('#scene').focus();await p.keyboard.down('KeyA');await p.waitForTimeout(1600);await p.keyboard.up('KeyA');
+const rect=await p.locator('#scene').boundingBox();await p.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);await p.mouse.down();await p.mouse.move(rect.x+rect.width/2+180,rect.y+rect.height/2,{steps:35});await p.mouse.up();await p.waitForTimeout(2500);
+const path=await p.video().path();await c.close();await b.close();await fs.copyFile(path,'qa-evidence/operation/operation-walk.webm');console.log('Captured actual operations and walking:',path);
