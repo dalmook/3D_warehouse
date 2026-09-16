@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import {normalize,object} from '../city-core.mjs';
 const base=process.env.BASE_URL||'http://127.0.0.1:4173/';
 await fs.mkdir('qa-evidence',{recursive:true});
-const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||undefined,args:process.env.BROWSER_CHANNEL?[]:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const p=await browser.newPage({viewport:{width:1280,height:900}}),errors=[],results=[];
 p.on('pageerror',e=>errors.push(e.message));p.on('dialog',d=>d.accept());
 const fixture=normalize({projectName:'QA 600 racks',warehouse:{width:200,depth:200,height:12},objects:Array.from({length:600},(_,i)=>object('rack',4+(i%30)*6.5,5+Math.floor(i/30)*9,{width:5,depth:1.2,height:6,config:{bays:20,levels:20,palletsPerLevel:2}}))});
