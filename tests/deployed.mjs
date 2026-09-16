@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const base=process.env.BASE_URL,sha=process.env.GITHUB_SHA;
 if(!base||!sha)throw Error('Expected Pages URL and source commit');
-const files=['index.html','city-app.mjs','city-core.mjs','city.css','classic.html','objects.js','boot.js'];
+const files=['index.html','city-app.mjs','city-render.mjs','city-core.mjs','city.css','classic.html','objects.js','boot.js'];
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const expected=Object.fromEntries(await Promise.all(files.map(async f=>[f,hash(await fs.readFile(f))])));
 let report={passed:false,commit:sha,url:base,files:[]};

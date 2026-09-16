@@ -1,7 +1,7 @@
 name: Warehouse City checks
 on:
   push:
-    branches: [main, feat/warehouse-city-v9]
+    branches: [main, fix/city-final-hardening]
     paths: ['city*', 'index.html', 'tests/**', 'vendor/**', '.github/workflows/city-ci.yml']
   pull_request:
     paths: ['city*', 'index.html', 'tests/**', 'vendor/**', '.github/workflows/city-ci.yml']
@@ -16,11 +16,9 @@ jobs:
         with:
           node-version: '22'
       - name: Unit tests
-        run: node --test city-core.test.mjs tests/core-release.test.mjs
+        run: node --test city-core.test.mjs tests/*.test.mjs
       - name: Validate application and vendor modules
         run: |
-          node --check city-core.mjs
-          node --check city-app.mjs
-          node --input-type=module --check < vendor/three.module.js
-          node --input-type=module --check < vendor/three.core.min.js
-          node --input-type=module --check < vendor/OrbitControls.js
+          for f in city-core.mjs city-render.mjs city-app.mjs vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
+            node --input-type=module --check < "$f"
+          done

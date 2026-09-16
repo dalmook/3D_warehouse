@@ -1,14 +1,14 @@
 name: Warehouse City browser QA and Pages
 on:
   push:
-    branches: [main, fix/city-release-qa]
-    paths-ignore: ['layouts/**', '**.md']
+    branches: [main, fix/city-final-hardening]
+    paths-ignore: ['**.md']
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
   group: city-browser-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   browser:
     runs-on: ubuntu-latest
@@ -24,32 +24,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Restore the verified original classic module once on QA branch
-        if: github.ref == 'refs/heads/fix/city-release-qa'
+      - name: Materialize final hardening on the dedicated branch
+        if: github.ref == 'refs/heads/fix/city-final-hardening'
         run: |
-          if [ ! -f .release/objects-tail.zlib ]; then exit 0; fi
-          python3 scripts/restore-classic.py
+          python3 scripts/final-hardening.py
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add objects.js boot.js classic.html tests/live-github.mjs
-          git add -u .release
-          git commit -m 'fix: restore complete original classic assets and keep serverless entry guidance'
-          git push origin HEAD:fix/city-release-qa
+          git add city-app.mjs index.html tests/browser.mjs tests/deployed.mjs
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: instance rack meshes and preserve data under dense-layout rendering'
+            git push origin HEAD:fix/city-final-hardening
+          fi
       - name: Unit and syntax tests
         run: |
-          node --test city-core.test.mjs tests/core-release.test.mjs
-          for f in city-app.mjs city-core.mjs app.js objects.js boot.js vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
+          node --test city-core.test.mjs tests/*.test.mjs
+          for f in city-app.mjs city-render.mjs city-core.mjs app.js objects.js boot.js vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
             node --input-type=module --check < "$f"
           done
       - name: Install Chromium
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Desktop, mobile and all classic asset checks
+      - name: Desktop, mobile, 600-rack stress and classic asset checks
         run: |
           mkdir -p qa-evidence
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/city-http.log 2>&1 &
           node tests/browser.mjs
+          node tests/stress.mjs
           node tests/classic.mjs
       - name: Real GitHub save and load with temporary-branch cleanup
         env:
@@ -97,10 +98,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      - name: Assemble static website
+      - name: Assemble static website including saved layouts
         run: |
           mkdir _site
-          cp index.html city.html classic.html city-app.mjs city-core.mjs city.css app.js boot.js objects.js styles.css .nojekyll _site/
+          cp index.html city.html classic.html city-app.mjs city-render.mjs city-core.mjs city.css app.js boot.js objects.js styles.css .nojekyll _site/
           cp -r vendor licenses layouts _site/
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -127,9 +128,10 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Repeat desktop, mobile and classic checks on the published site
+      - name: Repeat browser, dense-layout and classic checks on the published site
         run: |
           node tests/browser.mjs
+          node tests/stress.mjs
           node tests/classic.mjs
       - name: Verify real saving from the published origin
         env:
