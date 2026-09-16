@@ -1,0 +1,67 @@
+name: Warehouse City browser QA
+on:
+  push:
+    branches: [main, fix/city-release-qa]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: city-browser-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests
+        run: node --test city-core.test.mjs
+      - name: Install browser test runner
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Real WebGL browser checks
+        run: |
+          mkdir -p qa-evidence
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/city-http.log 2>&1 &
+          if [ -f tests/browser.mjs ]; then
+            node tests/browser.mjs
+          else
+            node --input-type=module <<'JS'
+            import {chromium} from 'playwright';
+            import fs from 'node:fs';
+            import assert from 'node:assert/strict';
+            const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+            const page=await browser.newPage({viewport:{width:1440,height:1000}});
+            const errors=[];page.on('pageerror',e=>errors.push(e.message));
+            await page.goto('http://127.0.0.1:4173/city.html');
+            await page.waitForFunction(()=>document.documentElement.dataset.ready==='true');
+            await page.screenshot({path:'qa-evidence/desktop-design.png'});
+            await page.locator('[data-mode="sim"]').click();
+            await page.locator('#playBtn').click();
+            await page.waitForFunction(()=>window.__warehouseCity.getSimulation()?.distance>1);
+            await page.screenshot({path:'qa-evidence/desktop-simulation.png'});
+            await page.locator('[data-mode="walk"]').click();
+            await page.screenshot({path:'qa-evidence/desktop-walk.png'});
+            assert.deepEqual(errors,[]);
+            fs.writeFileSync('qa-evidence/baseline.json',JSON.stringify({passed:true,errors,layout:await page.evaluate(()=>window.__warehouseCity.getLayout())},null,2));
+            await browser.close();
+            JS
+          fi
+      - name: Package source snapshot
+        if: always()
+        run: |
+          mkdir -p qa-evidence
+          tar -czf /tmp/city-source.tar.gz --exclude=.git --exclude=node_modules --exclude=qa-evidence .
+          cp /tmp/city-source.tar.gz qa-evidence/
+          cp /tmp/city-http.log qa-evidence/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: warehouse-city-qa
+          path: qa-evidence/
+          retention-days: 14
