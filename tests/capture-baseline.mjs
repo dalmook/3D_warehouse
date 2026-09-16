@@ -1,0 +1,16 @@
+import {chromium} from 'playwright';
+import fs from 'node:fs/promises';
+await fs.mkdir('qa-evidence/before',{recursive:true});
+const browser=await chromium.launch({channel:'msedge'});
+const page=await browser.newPage({viewport:{width:1440,height:900}});
+await page.goto('https://dalmook.github.io/3D_warehouse/');
+await page.screenshot({path:'qa-evidence/before/public.png'});
+await page.goto('http://127.0.0.1:4173');
+await page.waitForFunction(()=>window.__warehouseCity);
+await fs.writeFile('qa-evidence/before/layout.json',JSON.stringify(await page.evaluate(()=>window.__warehouseCity.getLayout())));
+await page.screenshot({path:'qa-evidence/before/overview.png'});
+await page.locator('[data-mode="walk"]').click();
+await page.waitForTimeout(200);
+await page.screenshot({path:'qa-evidence/before/walk.png'});
+await fs.writeFile('qa-evidence/before/metadata.json',JSON.stringify({source:'ab3857a',viewport:{width:1440,height:900},view:await page.evaluate(()=>window.__warehouseCity.getView()),note:'Public URL returned not found; comparison captured from exact main locally.'},null,2));
+await browser.close();

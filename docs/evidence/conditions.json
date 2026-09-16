@@ -1,0 +1,17 @@
+{
+  "layoutSource": "qa-evidence/before/layout.json",
+  "baseline": "ab3857a",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "walk": {
+    "yaw": 0,
+    "pitch": 0,
+    "x": 17.00000000000001,
+    "y": 1.65,
+    "z": 22.000000000000004,
+    "fov": 48
+  },
+  "note": "Both are actual local browser captures, not deployed Pages. Same original synthetic layout and camera."
+}

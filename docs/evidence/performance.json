@@ -1,0 +1,29 @@
+{
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
+  "gpu": "ANGLE (AMD, AMD Radeon RX 6700 XT (0x000073DF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "dpr": 1,
+  "preset": "standard",
+  "objects": 16,
+  "medianMs": 17.5,
+  "p99Ms": 18.600000000000364,
+  "medianFps": 57.142857142857146,
+  "onePercentLowFps": 53.763440860214004,
+  "render": {
+    "compact": false,
+    "estimatedParts": 40,
+    "racks": 2,
+    "meshes": 162,
+    "instances": 380,
+    "frame": 690,
+    "calls": 338,
+    "triangles": 462096,
+    "geometries": 123,
+    "textures": 48
+  },
+  "transferBytes": 300,
+  "gpuMemory": "not measured"
+}

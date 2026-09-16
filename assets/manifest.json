@@ -1,0 +1,316 @@
+{
+  "generator": "scripts/build-assets.py",
+  "blender": "4.5.9 LTS",
+  "assets": [
+    {
+      "id": "rack-frame",
+      "path": "assets/models/rack-frame.glb",
+      "source": "assets/source/rack-frame.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        0.19,
+        1.16,
+        6
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "rack-beam",
+      "path": "assets/models/rack-beam.glb",
+      "source": "assets/source/rack-beam.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        1,
+        0.11,
+        0.2
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "pallet",
+      "path": "assets/models/pallet.glb",
+      "source": "assets/source/pallet.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        1.2,
+        1,
+        0.16
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "plastic-pallet",
+      "path": "assets/models/plastic-pallet.glb",
+      "source": "assets/source/plastic-pallet.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        1.2,
+        1,
+        0.16
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "box",
+      "path": "assets/models/box.glb",
+      "source": "assets/source/box.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        0.6,
+        0.4,
+        0.405
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "forklift",
+      "path": "assets/models/forklift.glb",
+      "source": "assets/source/forklift.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        1.2,
+        2.4,
+        2.2
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "handpallet",
+      "path": "assets/models/handpallet.glb",
+      "source": "assets/source/handpallet.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        0.8,
+        1.6,
+        1.15
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "conveyor",
+      "path": "assets/models/conveyor.glb",
+      "source": "assets/source/conveyor.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        3,
+        1.15,
+        0.93
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "worktable",
+      "path": "assets/models/worktable.glb",
+      "source": "assets/source/worktable.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        2,
+        1,
+        0.9
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "dock",
+      "path": "assets/models/dock.glb",
+      "source": "assets/source/dock.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        3,
+        2.5,
+        3.4
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": []
+    },
+    {
+      "id": "worker",
+      "path": "assets/models/worker.glb",
+      "source": "assets/source/worker.blend",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "origin": "Original Blender construction; no third-party models",
+      "modifications": "Initial original authored asset",
+      "dimensions": [
+        0.6,
+        0.6,
+        1.8
+      ],
+      "units": "m",
+      "pivot": "floor centre",
+      "blenderUp": "+Z",
+      "blenderFront": "-Y",
+      "gltfUp": "+Y",
+      "gltfFront": "+Z",
+      "clips": [
+        "Idle",
+        "Walk",
+        "Carry",
+        "PickPlace"
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "path": "assets/textures/cardboard-albedo.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "sRGB"
+    },
+    {
+      "path": "assets/textures/cardboard-normal.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/cardboard-roughness.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/epoxy-albedo.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "sRGB"
+    },
+    {
+      "path": "assets/textures/epoxy-normal.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/epoxy-roughness.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/wood-albedo.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "sRGB"
+    },
+    {
+      "path": "assets/textures/wood-normal.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    },
+    {
+      "path": "assets/textures/wood-roughness.png",
+      "author": "Warehouse City project / Codex",
+      "license": "CC0-1.0",
+      "source": "scripts/make-textures.py",
+      "modifications": "Deterministic generated tile; seed 42",
+      "colorSpace": "linear"
+    }
+  ]
+}

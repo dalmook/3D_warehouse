@@ -1,0 +1,17 @@
+import {chromium} from 'playwright';
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const dir='qa-evidence/comparison';await fs.mkdir(dir,{recursive:true});
+const layout=JSON.parse(await fs.readFile('qa-evidence/before/layout.json','utf8'));
+const browser=await chromium.launch({channel:'msedge'}),p=await browser.newPage({viewport:{width:1440,height:900}});
+await p.goto('http://127.0.0.1:4173');await p.waitForFunction(()=>window.__warehouseCity);
+await p.locator('#importFile').setInputFiles({name:'baseline.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(layout))});
+await p.waitForFunction(n=>window.__warehouseCity.getLayout().projectName===n,layout.projectName);
+await p.locator('#isoBtn').click();await p.waitForTimeout(600);await p.screenshot({path:dir+'/after-overview.png'});
+await p.locator('[data-mode="walk"]').click();await p.locator('#walkFov').fill('48');await p.locator('#walkFov').dispatchEvent('input');
+const point=await p.locator('#minimap').evaluate(c=>{const w=window.__warehouseCity.getLayout().warehouse,r=c.getBoundingClientRect(),s=Math.min((c.width-24)/w.width,(c.height-24)/w.depth);return {x:r.left+((c.width-w.width*s)/2+17*s)*r.width/c.width,y:r.top+((c.height-w.depth*s)/2+22*s)*r.height/c.height};});
+await p.locator('#minimap').evaluate((c,p)=>c.onclick({currentTarget:c,clientX:p.x,clientY:p.y}),point);await p.waitForTimeout(300);
+const view=await p.evaluate(()=>window.__warehouseCity.getView());assert.ok(Math.abs(view.x-17)<.01&&Math.abs(view.z-22)<.01);assert.equal(view.yaw,0);assert.equal(view.pitch,0);
+await p.screenshot({path:dir+'/after-walk.png'});
+for(const name of ['overview','walk'])await fs.copyFile(`qa-evidence/before/${name}.png`,`${dir}/before-${name}.png`);
+await fs.writeFile(dir+'/conditions.json',JSON.stringify({layoutSource:'qa-evidence/before/layout.json',baseline:'ab3857a',viewport:{width:1440,height:900},walk:{...view,fov:48},note:'Both are actual local browser captures, not deployed Pages. Same original synthetic layout and camera.'},null,2));await browser.close();

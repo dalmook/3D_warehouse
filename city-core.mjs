@@ -1,6 +1,7 @@
+import {validateBackground} from './city-design.mjs';
 /** Warehouse City v9: deterministic layout, collision, navigation and simulation. Units: metres. */
 export const VERSION = 9;
-export const MAX_OBJECTS = 600;
+export const MAX_OBJECTS = 720;
 export const CATALOG = {
   rack: {name:'팔레트 랙', group:'보관', icon:'▦', width:8, depth:1.2, height:6, color:'#2674ae', config:{bays:4,levels:4,palletsPerLevel:2}},
   boxrack: {name:'박스랙',group:'보관',icon:'▥',width:3.6,depth:.8,height:2.4,color:'#e9a23b',config:{bays:4,levels:5,boxesPerCell:3}},
@@ -19,6 +20,9 @@ export const CATALOG = {
   door: {name:'출입문',group:'시설',icon:'▯',width:1.2,depth:.15,height:2.2,color:'#397c76'},
   cleanbooth: {name:'클린부스',group:'시설',icon:'▧',width:4,depth:3,height:2.7,color:'#69b1b0'}
 };
+CATALOG.handpallet={name:'핸드 파레트',group:'작업',icon:'▰',width:.8,depth:1.6,height:1.15,color:'#eeae33'};
+CATALOG['plastic-pallet']={name:'플라스틱 팔레트',group:'보관',icon:'▰',width:1.2,depth:1,height:.16,color:'#245569'};
+CATALOG.column={name:'기둥',group:'시설',icon:'┃',width:.4,depth:.4,height:7,color:'#8a999f'};
 export const copy = x => JSON.parse(JSON.stringify(x));
 export const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 const num = (v,f) => v !== null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : f;
@@ -30,6 +34,8 @@ export function object(type,x,y,extra={}) {
 export function normalize(raw) {
   if (!raw || typeof raw !== 'object' || !Array.isArray(raw.objects)) throw Error('도면 JSON에 objects 배열이 필요합니다.');
   if (raw.objects.length>MAX_OBJECTS) throw Error(`도면은 최대 ${MAX_OBJECTS}개 설비를 지원합니다.`);
+  if(raw.objects.filter(o=>o?.type==='worker').length>40)throw Error('작업자는 최대 40명입니다. 원본 도면은 유지됩니다.');
+  if(raw.objects.filter(o=>['rack','boxrack','shelf'].includes(o?.type)).length>600)throw Error('랙은 최대 600개입니다.');
   if (num(raw.schemaVersion,1)>VERSION) throw Error('더 최신 버전의 도면입니다. 원본을 보존하고 앱을 업데이트하세요.');
   const w = raw.warehouse || {}, seen = new Set();
   const warehouse = {width:clamp(num(w.width,36),10,200),depth:clamp(num(w.depth,24),10,200),height:clamp(num(w.height,9),3,30)};
@@ -45,7 +51,7 @@ export function normalize(raw) {
       width:clamp(num(o.width,def.width),.05,200),depth:clamp(num(o.depth,def.depth),.05,200),height:clamp(num(o.height,def.height),.01,30),
       rotation:((num(o.rotation,0)%360)+360)%360,color:/^#[0-9a-f]{6}$/i.test(o.color)?o.color:def.color,locked:!!o.locked,config};
   });
-  return {schemaVersion:VERSION,app:'Warehouse City',projectName:String(raw.projectName || '나의 물류센터').slice(0,80),warehouse,objects,
+  return {...(raw.background?{background:validateBackground(raw.background)}:{}),schemaVersion:VERSION,app:'Warehouse City',projectName:String(raw.projectName || '나의 물류센터').slice(0,80),warehouse,objects,
     simulation:{speed:clamp(num(raw.simulation?.speed,1.3),.2,3),dwell:clamp(num(raw.simulation?.dwell,2),0,60)}};
 }
 export function demo() {
@@ -57,7 +63,7 @@ export function demo() {
   return normalize({schemaVersion:9,projectName:'동선이 살아있는 물류센터',warehouse:{width:36,depth:24,height:9},objects});
 }
 const PASS = new Set(['aisle','safety','waypoint','worker','door','text','sign','warning']);
-export const solid = o => !PASS.has(o.type) && o.height>.08;
+export const solid = o => (!PASS.has(o.type)||o.type==='door'&&o.config?.closed) && o.height>.08;
 export function footprint(o) {
   const r=o.rotation*Math.PI/180,c=Math.cos(r),s=Math.sin(r);
   return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,y])=>({x:o.x+x*o.width/2*c+y*o.depth/2*s,y:o.y-x*o.width/2*s+y*o.depth/2*c}));
@@ -84,20 +90,30 @@ export function blocked(x,y,layout,radius=.3) {
     if(!solid(o)||o.z>=1.8) return false;
     const a=o.rotation*Math.PI/180,dx=x-o.x,dy=y-o.y;
     const lx=dx*Math.cos(a)-dy*Math.sin(a),ly=dx*Math.sin(a)+dy*Math.cos(a);
+    if(o.type==='dock'&&!o.config?.closed&&Math.abs(lx)<o.width/2-.16-radius)return false;
     const ex=Math.max(Math.abs(lx)-o.width/2,0),ey=Math.max(Math.abs(ly)-o.depth/2,0);
     return ex*ex+ey*ey<=radius*radius;
   });
 }
 export function segmentFree(a,b,layout,radius=.3) {
+  for(const zone of layout.objects){
+    const direction=zone.type==='aisle'&&zone.config?.oneWay;
+    if(!['+x','-x','+y','-y'].includes(direction))continue;
+    const r=zone.rotation*Math.PI/180,c=Math.cos(r),s=Math.sin(r),dx=b.x-a.x,dy=b.y-a.y;
+    const movement=direction.endsWith('x')?dx*c-dy*s:dx*s+dy*c;
+    if(movement*(direction[0]==='+'?1:-1)>=-1e-8)continue;
+    const n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/.2));
+    for(let i=0;i<=n;i++){const x=a.x+dx*i/n-zone.x,y=a.y+dy*i/n-zone.y;if(Math.abs(x*c-y*s)<zone.width/2&&Math.abs(x*s+y*c)<zone.depth/2)return false;}
+  }
   const steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/.12));
   for(let i=0;i<=steps;i++) if(blocked(a.x+(b.x-a.x)*i/steps,a.y+(b.y-a.y)*i/steps,layout,radius)) return false;
   return true;
 }
 export class Navigation {
-  constructor(layout,cell=.75) {
-    this.layout=layout;this.cell=cell;this.w=Math.ceil(layout.warehouse.width/cell);this.h=Math.ceil(layout.warehouse.depth/cell);
+  constructor(layout,cell=.75,radius=.3) {
+    this.radius=radius;this.layout=layout;this.cell=cell;this.w=Math.ceil(layout.warehouse.width/cell);this.h=Math.ceil(layout.warehouse.depth/cell);
     this.grid=new Uint8Array(this.w*this.h);
-    for(let i=0;i<this.grid.length;i++){const p=this.point(i);this.grid[i]=blocked(p.x,p.y,layout)?1:0;}
+    for(let i=0;i<this.grid.length;i++){const p=this.point(i);this.grid[i]=blocked(p.x,p.y,layout,this.radius)?1:0;}
     this.edges=new Map();
   }
   point(i){return {x:(i%this.w+.5)*this.cell,y:(Math.floor(i/this.w)+.5)*this.cell};}
@@ -105,11 +121,11 @@ export class Navigation {
     const cx=Math.floor(p.x/this.cell),cy=Math.floor(p.y/this.cell);let best=-1,dist=Infinity;
     for(let y=Math.max(0,cy-3);y<=Math.min(this.h-1,cy+3);y++)for(let x=Math.max(0,cx-3);x<=Math.min(this.w-1,cx+3);x++){
       const i=y*this.w+x,q=this.point(i),d=Math.hypot(q.x-p.x,q.y-p.y);
-      if(!this.grid[i]&&d<dist&&segmentFree(p,q,this.layout)){best=i;dist=d;}
+      if(!this.grid[i]&&d<dist&&segmentFree(p,q,this.layout,this.radius)){best=i;dist=d;}
     } return best;
   }
   path(from,to){
-    if(blocked(from.x,from.y,this.layout)||blocked(to.x,to.y,this.layout)) return [];
+    if(blocked(from.x,from.y,this.layout,this.radius)||blocked(to.x,to.y,this.layout,this.radius)) return [];
     const s=this.near(from),g=this.near(to); if(s<0||g<0)return [];
     const parent=new Int32Array(this.grid.length).fill(-1),queue=new Int32Array(this.grid.length);let head=0,tail=1;
     queue[0]=s;parent[s]=s;
@@ -118,8 +134,8 @@ export class Navigation {
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
         const nx=x+dx,ny=y+dy,j=ny*this.w+nx;
         if(nx<0||ny<0||nx>=this.w||ny>=this.h||this.grid[j]||parent[j]!==-1)continue;
-        const key=i<j?`${i}:${j}`:`${j}:${i}`;
-        if(!this.edges.has(key))this.edges.set(key,segmentFree(this.point(i),this.point(j),this.layout));
+        const key=`${i}:${j}`;
+        if(!this.edges.has(key))this.edges.set(key,segmentFree(this.point(i),this.point(j),this.layout,this.radius));
         if(!this.edges.get(key))continue;
         parent[j]=i;queue[tail++]=j;
       }
