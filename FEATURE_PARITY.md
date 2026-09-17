@@ -1,0 +1,74 @@
+# 기능 대조 및 검증 현황
+
+기준 조사: main d4aae103dc104ffde401f8a3dc41ce4ae02ee8f3, 2026-09-17. 전용 브랜치 feat/warehouse-practical-tools. STATUS.md의 기존 로컬 수정 보존. 함수 존재만으로 정상으로 판정하지 않음. 아래 카탈로그 표는 실제 생성·이름/잠금 편집·저장/재열기 검증 결과이다. 고유 속성 전체의 검증과는 구분한다.
+
+| 기능 | 구형 진입점 | 신형 진입점 | 함수 경로 | 데이터 | 상태 | 검증 |
+|---|---|---|---|---|---|---|
+| 팔레트 랙 (rack) | classic [data-object-type="rack"] → createObject / rebuildObjectVisual | 새 카탈로그 rack | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 박스랙 (boxrack) | classic [data-object-type="boxrack"] → createObject / rebuildObjectVisual | 새 카탈로그 boxrack | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 선반 (shelf) | classic [data-object-type="shelf"] → createObject / rebuildObjectVisual | 새 카탈로그 shelf | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 컨베이어 (conveyor) | classic [data-object-type="conveyor"] → createObject / rebuildObjectVisual | 새 카탈로그 conveyor | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 팔레트 (pallet) | classic [data-object-type="pallet"] → createObject / rebuildObjectVisual | 새 카탈로그 pallet | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 박스 (box) | classic [data-object-type="box"] → createObject / rebuildObjectVisual | 새 카탈로그 box | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 지게차 (forklift) | classic [data-object-type="forklift"] → createObject / rebuildObjectVisual | 새 카탈로그 forklift | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 도크 (dock) | classic [data-object-type="dock"] → createObject / rebuildObjectVisual | 새 카탈로그 dock | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 작업대 (worktable) | classic [data-object-type="worktable"] → createObject / rebuildObjectVisual | 새 카탈로그 worktable | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 클린부스 (cleanbooth) | classic [data-object-type="cleanbooth"] → createObject / rebuildObjectVisual | 새 카탈로그 cleanbooth | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 의자 (chair) | classic [data-object-type="chair"] → createObject / rebuildObjectVisual | 새 카탈로그 chair | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 테이핑기 (tapingmachine) | classic [data-object-type="tapingmachine"] → createObject / rebuildObjectVisual | 새 카탈로그 tapingmachine | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 볼륨체크기 (volumechecker) | classic [data-object-type="volumechecker"] → createObject / rebuildObjectVisual | 새 카탈로그 volumechecker | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| ERS 촬영 설비 (ers) | classic [data-object-type="ers"] → createObject / rebuildObjectVisual | 새 카탈로그 ers | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 고중량 전자저울 (heavyscale) | classic [data-object-type="heavyscale"] → createObject / rebuildObjectVisual | 새 카탈로그 heavyscale | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 무선 바코드 스캐너 (barcodescanner) | classic [data-object-type="barcodescanner"] → createObject / rebuildObjectVisual | 새 카탈로그 barcodescanner | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 휴게실 (breakroom) | classic [data-object-type="breakroom"] → createObject / rebuildObjectVisual | 새 카탈로그 breakroom | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 사무실 (office) | classic [data-object-type="office"] → createObject / rebuildObjectVisual | 새 카탈로그 office | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 탈의실 (lockerroom) | classic [data-object-type="lockerroom"] → createObject / rebuildObjectVisual | 새 카탈로그 lockerroom | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 파티션 (partition) | classic [data-object-type="partition"] → createObject / rebuildObjectVisual | 새 카탈로그 partition | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 일반 텍스트 (textlabel) | classic [data-object-type="textlabel"] → createObject / rebuildObjectVisual | 새 카탈로그 textlabel | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 작업자 (person) | classic [data-object-type="person"] → createObject / rebuildObjectVisual | 새 카탈로그 worker | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 컴퓨터 (computer) | classic [data-object-type="computer"] → createObject / rebuildObjectVisual | 새 카탈로그 computer | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| CCTV (cctv) | classic [data-object-type="cctv"] → createObject / rebuildObjectVisual | 새 카탈로그 cctv | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 소화기 (extinguisher) | classic [data-object-type="extinguisher"] → createObject / rebuildObjectVisual | 새 카탈로그 extinguisher | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 안전콘 (cone) | classic [data-object-type="cone"] → createObject / rebuildObjectVisual | 새 카탈로그 cone | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 안전 펜스 (barrier) | classic [data-object-type="barrier"] → createObject / rebuildObjectVisual | 새 카탈로그 barrier | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 구급함 (firstaid) | classic [data-object-type="firstaid"] → createObject / rebuildObjectVisual | 새 카탈로그 firstaid | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 분전반 (electrical) | classic [data-object-type="electrical"] → createObject / rebuildObjectVisual | 새 카탈로그 electrical | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 폐기물함 (trashbin) | classic [data-object-type="trashbin"] → createObject / rebuildObjectVisual | 새 카탈로그 trashbin | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 핸드 팔레트 (handtruck) | classic [data-object-type="handtruck"] → createObject / rebuildObjectVisual | 새 카탈로그 handpallet | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 라벨 프린터 (printer) | classic [data-object-type="printer"] → createObject / rebuildObjectVisual | 새 카탈로그 printer | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 일반 프린터 (officeprinter) | classic [data-object-type="officeprinter"] → createObject / rebuildObjectVisual | 새 카탈로그 officeprinter | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 사람 출입문 (door) | classic [data-object-type="door"] → createObject / rebuildObjectVisual | 새 카탈로그 door | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 안내 표지판 (sign) | classic [data-object-type="sign"] → createObject / rebuildObjectVisual | 새 카탈로그 sign | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 경고 표지판 (warning) | classic [data-object-type="warning"] → createObject / rebuildObjectVisual | 새 카탈로그 warning | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 안전 구역 (safety) | classic [data-object-type="safety"] → createObject / rebuildObjectVisual | 새 카탈로그 safety | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+| 박스 적재 (stack) | classic [data-object-type="stack"] → createObject / rebuildObjectVisual | 새 카탈로그 stack | catalogue → object → model → applyObject → normalize | id/type/x/y/z/rotation/width/depth/height/config/supportId/locked | 정상: 생성/이름/잠금/복구 | tests/parity-browser.mjs: 클릭 생성→이름/잠금→자동저장→새로고침 |
+
+## 공통 도구: 현재 검증 결과
+
+| 기능 | 구형 → 신형 진입점 | 함수·데이터 | 상태 | 검증 |
+|---|---|---|---|---|
+| 테마 | theme-btn → 상단 테마 | installPractical/theme, root data-theme, 별도 로컬 선호 | 정상 | Light/Dark/Blueprint, 운영/보행/새로고침, object.color 불변 |
+| 치수 | dimension-btn → 상단 치수 | dimensionLines/drawingDimensions/equipmentDistance, 설계 외곽 | 부분 | 로컬 폭/깊이/높이·벽 이격·회전 설비 간 거리·라벨 밀도, 측정값의 영구 앵커 편집 미구현 |
+| 출력 | screenshot-btn → 도면 다운로드 | city-output, 공통 drawingDimensions | 부분 | 실제 DXF BLOCK/INSERT/DIMENSION, ezdxf 감사 0오류/0수정. PDF 한글·평면/측면 렌더 확인. 상용 CAD 호환성 미검증, PDF 문자 래스터 |
+| 자동 적재 | stack-open-btn → 선택 팔레트 박스 쌓기 / 도구 | stackLayout, nested load.boxes | 정상: 정렬 모드 | 48개/9개 층당/6단/1640·1660mm; 회전·하중·실제 좌표, GLB 인스턴스 |
+| 수동 적재 | drag support → 선택 박스 받침 선택·적재 | attachSupport, supportId/z | 부분 | 받침 중앙 배치·계층 변환·복제. 임의 박스의 받침면 드래그 자동 탐지는 미복구 |
+| 포함 박스 | 개별 top-level → 논리 적재 포함 박스 목록 | load.boxes, refreshLoad | 부분 | 제거·바닥 위치 미리보기·Undo; 3D 직접 박스 클릭 선택/개별 추가 UI 미구현 |
+| 스냅/격자/잠금/목록 | 각 구형 도구 → 도구 대화상자 | snapStep/gridVisible/locked/objectList | 정상 | OFF/.1/.5/1, 전체잠금/해제, 객체목록. 카탈로그 43종 생성·잠금 복구 |
+| 회전/바닥 | 회전·unstack → 속성 0/45/90/180, 도구 바닥내리기 | applySupportedChange/transformSupported | 부분 | 지원 계층 같이 변환; 바닥 겹침은 원자적으로 거절 |
+| 다중 편집 | 선택/복제 → Shift/사각 선택/도구/Ctrl+C,V,D | closure/cloneGroup/cloneReferences, supportId/groupId/routeId | 부분 | 10팔레트+박스 중복방지·새 ID·support·480박스, 미리보기/R/Enter/Esc/Undo. 저장 치수 앵커 시스템 미구현 |
+| 팔레트 BOX/랙 용량 | calculatePalletBoxCapacity → 박스 쌓기 규격만 저장·고유 속성 | capacity/stackLayout/config | 정상 | 실제 두께, 30베이 보존, 이중 박스 집계 방지, 단당PLT/셀당BOX |
+| 운영 동선 | waypoint 순환 → 운영 상단 동선 설정 | Simulation/routes/routePoints/operations | 부분 | 화면 클릭·순서 드래그·이름/대기·반복/편도/왕복·복제·명시 입출고 역할. 보관/피킹 역할의 별도 슬롯 필터 UI 미구현 |
+| 구역 반복/바닥 운영 | 랙만 → 도구 구역 자동 배치 | planArea, repeatZones, floorStorageZone/config.floorStorage | 부분 | 랙/팔레트/박스/적재그룹, 회전·간격·열 통로·벽이격·충돌맵·일괄Undo, 랙0 입고→출하 UI 검증. 사각 영역 드래그/영역채우기/부분적용/취소Worker/수정구역 재계산 미구현 |
+| 공용 저장 | PAT → 공용 저장 + 고급GitHub | projectId/revisionId/baseRevision, installShared | 부분 | 파일 생성→GitHub 업로드 링크→실제 내용 확인·개정 연결. 일반직원 실계정 업로드 미검증. 병렬 개정은 수동 비교 |
+| GLB/PBR/클립 | 기존 신형 유지 | city-assets/AnimationMixer | 정상 | 11GLB/4클립/독립 뼈대, 리뉴얼 브라우저 5개 통과 |
+| 평면/배경/보행/A-B | 기존 신형 유지 | city-design/experiments/Navigation | 정상: 기존 검사 | 브라우저22·스트레스4·리뉴얼5. 실기 모바일 성능 미측정 |
+
+카탈로그: person과 handtruck은 아래 별칭으로 등록하며 구형 도면 원본을 보존한다. breakroom/lockerroom/선반/특수 장비는 기존 상세 빌더를 공유한다. 주요 설비 GLB는 교체하거나 삭제하지 않았다. 표지판 문구 편집은 practical-browser에서 저장/재열기까지 검사했다. 모든 타입의 모든 고유 속성 조합을 검사했다는 의미는 아니다.
+
+## 명시적 별칭
+
+person → worker, handtruck → handpallet. legacyType에 원래 타입을 남기고 ID·규격·supportId·elevation·config를 보존한다. 나머지는 타입 그대로 유지한다. 원본 localStorage 키를 삭제하지 않는다. 추가 도메인 필드는 기존 schemaVersion 9의 확장 필드이며 normalize·History·JSON에서 보존한다. 30베이는 20으로 자르지 않는다.
+
+## 공개 검증 실패 조사
+
+실행 35160386674: browser/deploy 성공, published 해시 성공, published 표준 SwiftShader screenshot 30초 timeout. 공개 사이트 Edge GPU의 동일 테스트는 통과. 공개-origin 실제 저장 단계는 실패 후 skipped였음. 배포 성공과 공개 전체 성공을 구분한다.

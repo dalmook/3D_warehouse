@@ -19,6 +19,6 @@ jobs:
         run: node --test city-core.test.mjs tests/*.test.mjs
       - name: Validate application and vendor modules
         run: |
-          for f in city-core.mjs city-render.mjs city-app.mjs vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
+          for f in city-*.mjs vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
             node --input-type=module --check < "$f"
           done

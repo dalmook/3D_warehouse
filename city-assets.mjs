@@ -42,7 +42,7 @@ export function staticInstances(name,transforms,parent,tint){
 }
 const matrix=(x,y,z,sx=1,sy=1,sz=1)=>new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion(),new THREE.Vector3(sx,sy,sz));
 export function rackAsset(o){
- const g=new THREE.Group(),w=o.width,d=o.depth,h=o.height,b=o.config?.bays||4,l=o.config?.levels||4,bw=w/b;
+ const g=new THREE.Group(),w=o.width,d=o.depth,h=o.height,b=Math.min(40,o.config?.bays||4),l=Math.min(30,o.config?.levels||4),bw=w/b;
  const frames=[],beams=[],pallets=[],boxes=[];
  for(let i=0;i<=b;i++)frames.push(matrix(-w/2+i*bw,0,0,1,h/6,d));
  for(let j=0;j<l;j++){
@@ -63,6 +63,14 @@ export function rackAsset(o){
  }
  staticInstances('rack-frame',frames,g,o.color);staticInstances('rack-beam',beams,g);staticInstances('pallet',pallets,g);staticInstances('box',boxes,g);
  return g;
+}
+export function loadAsset(o){
+ const g=fitAsset(o.type==='stack'?'pallet':o.type,{...o,height:o.type==='stack'?(o.load?.palletHeight||o.stack?.palletHeight||.14):o.height});
+ if(!g)return null;
+ // An independent load group prevents pallet scaling from scaling the boxes twice.
+ const root=new THREE.Group();root.add(g);
+ const transforms=(o.load?.boxes||[]).map(b=>new THREE.Matrix4().compose(new THREE.Vector3(b.x,b.z,b.y),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),b.rotation*Math.PI/180),new THREE.Vector3(b.width/.6,b.height/.405,b.depth/.4)));
+ if(transforms.length)staticInstances('box',transforms,root);return root;
 }
 export function fitAsset(name,o){
  const g=asset(name);if(!g)return null;

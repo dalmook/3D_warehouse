@@ -28,7 +28,7 @@ jobs:
       - name: Unit and syntax tests
         run: |
           node --test city-core.test.mjs tests/*.test.mjs
-          for f in city-app.mjs city-render.mjs city-core.mjs app.js objects.js boot.js vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
+          for f in city-*.mjs app.js objects.js boot.js vendor/three.module.js vendor/three.core.min.js vendor/OrbitControls.js; do
             node --input-type=module --check < "$f"
           done
       - name: Install Chromium
@@ -44,6 +44,9 @@ jobs:
           node tests/browser.mjs
           node tests/stress.mjs
           node tests/classic.mjs
+          node tests/practical-browser.mjs
+          node tests/operations-browser.mjs
+          node tests/shared-browser.mjs
       - name: Real GitHub save and load with temporary-branch cleanup
         env:
           QA_GITHUB_TOKEN: ${{ github.token }}
@@ -128,12 +131,18 @@ jobs:
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
       - name: Repeat browser, dense-layout and classic checks on the published site
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
         run: |
           node tests/browser.mjs
           node tests/stress.mjs
           node tests/classic.mjs
+          node tests/practical-browser.mjs
+          node tests/operations-browser.mjs
+          node tests/shared-browser.mjs
       - name: Verify real saving from the published origin
         env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
           QA_GITHUB_TOKEN: ${{ github.token }}
         run: node tests/live-github.mjs
       - uses: actions/upload-artifact@v4

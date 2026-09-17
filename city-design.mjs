@@ -1,11 +1,16 @@
+import {stackLayout} from './city-domain.mjs';
 import {copy,object,placementError,MAX_OBJECTS,footprint} from './city-core.mjs';
 export function capacity(objects){
- let palletPositions=0,boxPositions=0;
+ let palletPositions=0,boxPositions=0,actualBoxes=0;
  for(const o of objects){const c=o.config||{},b=c.bays||4,l=c.levels||4,excluded=new Set((c.excludedBays||[]).filter(i=>Number.isInteger(i)&&i>=0&&i<b)).size;
   if(o.type==='rack')palletPositions+=(b-excluded)*(l+(c.floorStorage?1:0))*(c.palletsPerLevel||2)*(c.doubleSided?2:1);
   if(o.type==='boxrack')boxPositions+=(b-excluded)*l*(c.boxesPerCell||3);
-  if(o.type==='box'&&o.z===0)boxPositions++;
- }return {palletPositions,boxPositions};
+  if(['pallet','plastic-pallet'].includes(o.type)&&c.floorStorage)palletPositions++;
+  if(o.type==='floorStorageZone')palletPositions+=Math.max(1,o.config?.slots||1);
+  if(['pallet','plastic-pallet','stack'].includes(o.type)){const v=o.load||{palletWidth:o.width,palletDepth:o.depth,palletHeight:o.height,boxWidth:Number(c.boxWidth)||.4,boxDepth:Number(c.boxDepth)||.3,boxHeight:Number(c.boxHeight)||.25,maxHeight:Number(c.maxStackHeight)||1.8};boxPositions+=stackLayout({...v,count:0}).maxCount;}
+  if(o.type==='box'){actualBoxes++;let root=o,seen=new Set();while(root.supportId&&!seen.has(root.id)){seen.add(root.id);const parent=objects.find(p=>p.id===root.supportId);if(!parent)break;root=parent;}if(!['pallet','plastic-pallet','stack'].includes(root.type))boxPositions++;}
+  actualBoxes+=o.load?.boxes?.length||o.stack?.count||0;
+ }return {palletPositions,boxPositions,actualBoxes};
 }
 export function planRacks(layout,{x=5,y=5,rows=1,columns=1,width=8,depth=1.2,height=6,bays=4,levels=4,aisle=3,gap=1,wall=.2,doubleSided=false}={}){
  const values=[x,y,rows,columns,width,depth,height,bays,levels,aisle,gap,wall];
