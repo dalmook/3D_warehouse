@@ -48,6 +48,7 @@ jobs:
           node tests/groups-browser.mjs
           node tests/operations-browser.mjs
           node tests/shared-browser.mjs
+          node tests/ghost-browser.mjs
       - name: Real GitHub save and load with temporary-branch cleanup
         env:
           QA_GITHUB_TOKEN: ${{ github.token }}
@@ -142,6 +143,7 @@ jobs:
           node tests/groups-browser.mjs
           node tests/operations-browser.mjs
           node tests/shared-browser.mjs
+          node tests/ghost-browser.mjs
       - name: Verify real saving from the published origin
         env:
           BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
