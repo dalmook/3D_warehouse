@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {normalize,object,History,overlap,Simulation} from '../city-core.mjs';
-import {stackLayout,cloneGroup,cloneReferences,attachSupport,equipmentDistance,localToPlan,storageSlots,planArea,dimensions} from '../city-domain.mjs';
+import {stackLayout,cloneGroup,cloneReferences,attachSupport,equipmentDistance,measurementAnchor,resolveAnchor,localToPlan,storageSlots,planArea,dimensions} from '../city-domain.mjs';
 import {capacity} from '../city-design.mjs';
 import {Logistics} from '../city-logistics.mjs';
 import {exportDXF} from '../city-output.mjs';
@@ -22,4 +22,12 @@ test('manual support centres box, preserves hierarchy, capacity does not double 
 });
 test('rotated design clearance and invalid repeated counts are checked',()=>{
  const a=object('pallet',3,3,{width:2,depth:2}),b=object('pallet',7,3,{width:2,depth:2});assert.equal(equipmentDistance(a,b),2);assert.equal(equipmentDistance(a,{...a,rotation:45}),0);assert.throws(()=>planArea(normalize({objects:[]}),[a],{x:2,y:2,rows:1.5,columns:2}));
+});
+test('measurement anchors follow rotated objects and clone internal references',()=>{
+ const a=object('pallet',3,3),b=object('pallet',7,3),l=normalize({objects:[a,b]});const A=measurementAnchor(l,{x:2.4,y:2.5}),B=measurementAnchor(l,{x:6.4,y:2.5});l.measurements=[{id:'m',a:A,b:B}];assert.equal(A.objectId,a.id);l.objects[0].x=4;assert.equal(resolveAnchor(l,A).x,3.4);const added=cloneGroup(l.objects,[a.id,b.id],{y:5}),refs=cloneReferences(l,l.objects,added);assert.equal(refs.measurements.length,1);assert.equal(refs.measurements[0].a.objectId,added[0].id);
+});
+test('area planner protects aisles and door working clearance before apply',()=>{
+ const l=normalize({objects:[object('aisle',5,5,{width:3,depth:8})]}),p=planArea(l,[object('pallet',0,0)],{x:4,y:4,rows:1,columns:1});assert.match(p.errors[0].error,/통로/);
+ assert.throws(()=>planArea(l,[object('pallet',0,0),object('box',0,0)],{x:2,y:2,rows:20,columns:20}),/한도/);
+ const filled=planArea(normalize({objects:[]}),[object('pallet',0,0)],{x:2,y:2,rows:1,columns:1,fill:true,regionWidth:4,regionDepth:4});assert.equal(filled.added.length,6);assert.equal(filled.errors.length,0);
 });

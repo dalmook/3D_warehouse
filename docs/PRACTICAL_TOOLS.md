@@ -22,7 +22,7 @@
 
 ## 실제 검증과 제한
 
-로컬 Windows 10, Edge153, RX6700XT, 1440×900·1920×1080·390×844. Node 도메인40, 기존 브라우저22, 카탈로그43종 생성/편집/새로고침, 실무 출력/적재/테마/복사 흐름, 동선/랙0 운영 흐름, 공유저장 모의 실패/확인/개정 연결, 스트레스4, 리뉴얼5 통과. 카탈로그 검사에서 null instanceColor 갱신 오류를 수정한 뒤 다시 통과했다.
+로컬 Windows 10, Edge153, RX6700XT, 1440×900·1920×1080·390×844. Node 도메인42, 기존 브라우저22, 카탈로그43종 생성/편집/새로고침, 실무 출력/적재/테마/복사 흐름, 동선/랙0 운영 흐름, 공유저장 모의 실패/확인/개정 연결, 스트레스4, 리뉴얼5 통과. 카탈로그 검사에서 null instanceColor 갱신 오류를 수정한 뒤 다시 통과했다.
 
 1920×1080 DPR1 표준, 16설비·2랙: median57.14fps, 1%low54.35fps, frame17.5ms/p99 18.4ms, 338drawcalls, 462096triangles. GPU메모리 미측정. transferBytes=0은 캐시/계측 한계이며 0바이트 전송이라고 보고하지 않는다. 모바일은 에뮬레이션 기능 검사이며 실제 단말 성능 수치가 아니다.
 
@@ -42,3 +42,9 @@ python tests/cad-audit.py
 로컬 정적 서버: python -m http.server 4173. CI SwiftShader는 ?quality=low를 명시하고 실제 GPU 표준 성능과 분리한다.
 
 공식 참고: https://github.com/dxfjs/writer ; Autodesk DXF DIMENSION https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-239A1BDD-7459-4BB9-8DD7-08EC79BF1EB0.htm ; GitHub 웹 업로드 https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository . 확인일 2026-09-17. 문서 조사와 실제 브라우저 검사를 구분했다.
+
+추가 검증: 10팔레트+포함480박스+수동10박스를 실제 UI에서 복사·90도 회전·붙여넣어 총960박스와 supportId를 확인하고 한 번의 Undo/Redo로 복구했다. 측정은 설비 모서리 앵커 또는 바닥 점으로 저장하며 JSON/출력/복제 내부 참조에 반영한다. 영역 드래그/영역 채우기와 출입문·도크 앞 작업공간 검사 추가. DXF Standard STYLE은 malgun.ttf를 참조한다. 글꼴 파일을 재배포하지 않으며 다른 OS CAD에서는 사용 가능한 한글 글꼴로 스타일을 지정해야 할 수 있다.
+
+첫 PR 커밋 c9b2fb3: GitHub Actions 35167504396 전체 성공. 소프트웨어 low 브라우저22·스트레스4·클래식38·실무/동선/공용저장 모의 흐름과 실제 GitHub API 생성·SHA수정·재열기·토큰검사 성공, 임시 브랜치 정리. 이것은 일반 직원 웹 업로드 실계정 검증과 별개다.
+
+포함 박스는 한 개 추가/제거와 직접 3D 클릭→목록 선택을 지원한다. 위 박스가 있는 하단 박스의 제거/반출은 차단하여 상하 순서를 보존한다. 멀티 정렬/이동도 받침 계층을 함께 이동한다.

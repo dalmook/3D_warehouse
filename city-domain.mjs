@@ -1,5 +1,5 @@
 /** Shared design geometry and quantities. All values in metres; no render bounds. */
-import {copy,uid,footprint,placementError,MAX_OBJECTS,blocked} from './city-core.mjs';
+import {copy,uid,footprint,placementError,MAX_OBJECTS,blocked,overlap} from './city-core.mjs';
 export function stackLayout(v){
  const {palletWidth:w,palletDepth:d,palletHeight:h,boxWidth:bw,boxDepth:bd,boxHeight:bh,maxHeight, count,gap=0,rotate=true,layerLimit=1000,boxWeight=0,maxLoad=0}=v;
  if(![w,d,h,bw,bd,bh,maxHeight,count,gap,layerLimit,boxWeight,maxLoad].every(Number.isFinite)||Math.min(w,d,h,bw,bd,bh)<=0||gap<0||count<0||!Number.isInteger(count)||layerLimit<0||boxWeight<0||maxLoad<0)throw Error('적재 규격·수량·간격을 확인하세요.');
@@ -20,7 +20,7 @@ export function cloneGroup(objects,ids,{x=0,y=0,rotation=0}={}){
 }
 export function validateAdded(layout,added){if(layout.objects.length+added.length>MAX_OBJECTS)return ['설비 수 한도 초과'];const next={...layout,objects:[...layout.objects,...added]};return added.map(o=>placementError(o,next)).filter(Boolean);}
 export function cloneReferences(layout,source,added){
- const routes=[],routePoints=[],done=new Map(),objects=new Map(source.map((o,i)=>[o.id,added[i]?.id]));
+ const routes=[],routePoints=[],measurements=[],done=new Map(),objects=new Map(source.map((o,i)=>[o.id,added[i]?.id]));
  for(let i=0;i<source.length;i++){
   const o=source[i],n=added[i];if(!n)continue;
   const route=layout.routes?.find(r=>r.id===o.routeId);if(!route)continue;
@@ -29,7 +29,14 @@ export function cloneReferences(layout,source,added){
   for(const pointId of route.destinationIds){const p=layout.routePoints?.find(p=>p.id===pointId);if(!p)continue;const q={...copy(p),...localToPlan({x:n.x,y:n.y,z:0,rotation:n.rotation-o.rotation},{x:p.x-o.x,y:p.y-o.y}),id:uid()};if(q.objectId)q.objectId=objects.get(q.objectId)||q.objectId;ids.push(q.id);routePoints.push(q);}
   routes.push({...copy(route),id,destinationIds:ids});
  }
- return {routes,routePoints};
+ for(const m of layout.measurements||[]){if(![m.a,m.b].every(p=>p.objectId&&objects.has(p.objectId)))continue;measurements.push({...copy(m),id:uid(),a:{...m.a,objectId:objects.get(m.a.objectId)},b:{...m.b,objectId:objects.get(m.b.objectId)}});}
+ return {routes,routePoints,measurements};
+}
+export function resolveAnchor(layout,anchor){if(!anchor.objectId)return anchor;const o=layout.objects.find(o=>o.id===anchor.objectId);return o?localToPlan(o,anchor):null;}
+export function measurementAnchor(layout,p){
+ let nearest=null,best=.35;
+ for(const o of layout.objects){if(['aisle','safety','worker','floorStorageZone'].includes(o.type))continue;for(const q of footprint(o)){const d=Math.hypot(p.x-q.x,p.y-q.y);if(d<best){best=d;nearest={o,q};}}}
+ if(!nearest)return {...p};const {o,q}=nearest,local=localToPlan({x:0,y:0,z:0,rotation:-o.rotation},{x:q.x-o.x,y:q.y-o.y});return {...local,objectId:o.id};
 }
 export function transformSupported(objects,before,after){
  const children=closure(objects,[before.id]).filter(o=>o.id!==before.id),angle=after.rotation-before.rotation;
@@ -60,11 +67,20 @@ export function storageSlots(objects,layout,radius=.4){return objects.flatMap(o=
  if(b*l*n>100000)throw Error('운영 슬롯이 너무 많습니다. 구역을 나누세요.');
  for(let side=0;side<(c.doubleSided?2:1);side++)for(let level=0;level<l+(c.floorStorage?1:0);level++)for(let bay=0;bay<b;bay++){if(c.excludedBays?.includes(bay))continue;for(let p=0;p<n;p++)slots.push({id:`${o.id}:${side}:${level}:${bay}:${p}`,rack:o.id,kind:'rack',capacity:1,unit:null,point:accessPoint(o,radius,layout),visual:localToPlan(o,{x:-o.width/2+(bay+(p+.5)/n)*o.width/b,y:0,z:.44+level*(o.height-.3)/l})});}return slots;
  });}
-export function planArea(layout,source,{x,y,rows,columns,gap=.3,aisle=2,every=4,rotation=0,wall=.2,count=rows*columns}){
+export function planArea(layout,source,{x,y,rows,columns,gap=.3,aisle=2,every=4,rotation=0,wall=.2,count=rows*columns,regionWidth=0,regionDepth=0,fill=false}){
  if(![x,y,rows,columns,gap,aisle,every,rotation,wall,count].every(Number.isFinite)||![rows,columns,every,count].every(Number.isSafeInteger)||count<1||wall<0||rows<1||columns<1||rows*columns>720||gap<0||aisle<0||every<1)throw Error('행·열·간격을 확인하세요. 미리보기 최대 720개입니다.');
  const preview=cloneGroup(source,source.map(o=>o.id),{rotation}),points=preview.flatMap(footprint),minX=Math.min(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y)),w=Math.max(...points.map(p=>p.x))-minX,d=Math.max(...points.map(p=>p.y))-minY;
+ if(fill){if(![regionWidth,regionDepth].every(v=>Number.isFinite(v)&&v>0))throw Error('영역 폭·깊이를 지정하세요.');columns=0;while(columns<721&&columns*(w+gap)+Math.floor(columns/every)*aisle+w<=regionWidth+1e-8)columns++;rows=Math.floor((regionDepth+gap)/(d+gap));count=rows*columns;if(!count)throw Error('영역에 들어가는 설비가 없습니다.');}
+ const total=Math.min(count,rows*columns);if(total>720||layout.objects.length+total*source.length>MAX_OBJECTS)throw Error('설비 수 한도 초과: 적용 전 취소했습니다.');if(total*source.reduce((n,o)=>n+(o.load?.boxes?.length||0),0)>100000)throw Error('한 번에 생성할 포함 박스는 100,000개까지입니다. 구역을 나누세요.');
  const added=[],errors=[],zoneId=uid();
  for(let r=0;r<rows;r++)for(let c=0;c<columns&&r*columns+c<count;c++){
-  const group=cloneGroup(preview,preview.map(o=>o.id),{x:x-minX+c*(w+gap)+Math.floor(c/every)*aisle,y:y-minY+r*(d+gap)});for(const o of group){o.repeatZoneId=zoneId;const err=placementError(o,{...layout,objects:[...layout.objects,...added,...group]})||(footprint(o).some(p=>p.x<wall||p.y<wall||p.x>layout.warehouse.width-wall||p.y>layout.warehouse.depth-wall)?'벽 이격 부족':'');if(err)errors.push({id:o.id,x:o.x,y:o.y,error:err});}added.push(...group);
- }if(added.length+layout.objects.length>MAX_OBJECTS)errors.push({error:'설비 수 한도 초과'});return {added,errors,zoneId,spec:{x,y,rows,columns,gap,aisle,every,rotation,wall,count}};
+  const group=cloneGroup(preview,preview.map(o=>o.id),{x:x-minX+c*(w+gap)+Math.floor(c/every)*aisle,y:y-minY+r*(d+gap)});for(const o of group){o.repeatZoneId=zoneId;const err=placementError(o,{...layout,objects:[...layout.objects,...added,...group]})||(footprint(o).some(p=>p.x<wall||p.y<wall||p.x>layout.warehouse.width-wall||p.y>layout.warehouse.depth-wall)?'벽 이격 부족':'')||planningClearance(o,layout);if(err)errors.push({id:o.id,x:o.x,y:o.y,error:err});}added.push(...group);
+ }if(added.length+layout.objects.length>MAX_OBJECTS)errors.push({error:'설비 수 한도 초과'});return {added,errors,zoneId,spec:{x,y,rows,columns,gap,aisle,every,rotation,wall,count,regionWidth,regionDepth,fill}};
+}
+function planningClearance(o,layout){
+ const planar=p=>({...p,z:0,height:1,load:null});
+ for(const zone of layout.objects){
+  if((zone.type==='aisle'||zone.config?.prohibited||zone.config?.allowed?.includes('none'))&&overlap(planar(o),planar(zone)))return '통로 / 금지 구역 침범';
+  if(['dock','door'].includes(zone.type)){const clearance=Number(zone.config?.workingClearance)||1.5,p=localToPlan(zone,{x:0,y:zone.depth/2+clearance/2});if(overlap(planar(o),planar({...zone,...p,depth:clearance})))return '출입문 / 도크 앞 작업 공간 부족';}
+ }return '';
 }

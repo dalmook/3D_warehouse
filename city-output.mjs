@@ -1,6 +1,6 @@
 import {footprint,CATALOG} from './city-core.mjs';
 import {capacity} from './city-design.mjs';
-import {dimensions,localToPlan} from './city-domain.mjs';
+import {dimensions,localToPlan,resolveAnchor} from './city-domain.mjs';
 import {DxfWriter,Units,point3d} from './vendor/dxf.mjs';
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 export const CAD_SCALE=1000;
@@ -9,11 +9,12 @@ export const cadPoint=p=>point3d(p.x*CAD_SCALE,-p.y*CAD_SCALE,0);
 export function drawingDimensions(layout){return [
  {id:'warehouse-w',a:{x:0,y:0},b:{x:layout.warehouse.width,y:0},offset:-1},
  {id:'warehouse-d',a:{x:0,y:0},b:{x:0,y:layout.warehouse.depth},offset:1},
- ...layout.objects.filter(o=>!['worker','waypoint'].includes(o.type)).flatMap(o=>{const f=dimensions(o).footprint;return [{id:o.id+'-w',a:f[0],b:f[1],offset:-.25},{id:o.id+'-d',a:f[1],b:f[2],offset:-.25}];})];}
+ ...layout.objects.filter(o=>!['worker','waypoint'].includes(o.type)).flatMap(o=>{const f=dimensions(o).footprint;return [{id:o.id+'-w',a:f[0],b:f[1],offset:-.25},{id:o.id+'-d',a:f[1],b:f[2],offset:-.25}];}),
+ ...(layout.measurements||[]).map(m=>({...m,a:resolveAnchor(layout,m.a),b:resolveAnchor(layout,m.b),offset:.3,measured:true})).filter(m=>m.a&&m.b)];}
 const layer=o=>({partition:'WALL',column:'COLUMN',door:'DOOR',dock:'DOCK',rack:'RACK',boxrack:'RACK',shelf:'RACK',pallet:'PALLET','plastic-pallet':'PALLET',stack:'PALLET',box:'BOX',aisle:'AISLE',safety:'ZONE',floorStorageZone:'ZONE',waypoint:'ROUTE',textlabel:'TEXT',sign:'TEXT',warning:'TEXT'}[o.type]||'EQUIPMENT');
 export function planObjects(layout){return layout.objects.flatMap(o=>[o,...(o.load?.boxes||[]).filter(b=>Math.abs(b.z-(o.load?.palletHeight||o.height))<1e-6).map(b=>({...b,...localToPlan(o,b),type:'box',name:'',color:'#c7975d',rotation:o.rotation+b.rotation}))]);}
 export function exportDXF(layout){
- const d=new DxfWriter();d.setUnits(Units.Millimeters);const layers=['OUTLINE','WALL','COLUMN','DOOR','DOCK','RACK','PALLET','BOX','EQUIPMENT','AISLE','ZONE','ROUTE','DIMENSION','TEXT'];layers.forEach((l,i)=>d.addLayer(l,i%6+1,'CONTINUOUS'));
+ const d=new DxfWriter();d.document.styleStandard.fontFileName="malgun.ttf";d.setUnits(Units.Millimeters);const layers=['OUTLINE','WALL','COLUMN','DOOR','DOCK','RACK','PALLET','BOX','EQUIPMENT','AISLE','ZONE','ROUTE','DIMENSION','TEXT'];layers.forEach((l,i)=>d.addLayer(l,i%6+1,'CONTINUOUS'));
  const style=d.addDimStyle('WAREHOUSE_MM');Object.assign(style,{DIMTXT:120,DIMASZ:100,DIMEXO:30,DIMEXE:60,DIMDEC:0,DIMLFAC:1,DIMSCALE:1});
  const polygon=(target,pts,l)=>target.addLWPolyline(pts.map(p=>({point:cadPoint(p)})),{flags:1,layerName:l});
  polygon(d,[{x:0,y:0},{x:layout.warehouse.width,y:0},{x:layout.warehouse.width,y:layout.warehouse.depth},{x:0,y:layout.warehouse.depth}],'OUTLINE');
@@ -21,21 +22,21 @@ export function exportDXF(layout){
  for(const route of layout.routes||[]){const pts=route.destinationIds.map(id=>(layout.routePoints||[]).find(p=>p.id===id)).filter(Boolean);for(let i=1;i<pts.length;i++)d.addLine(cadPoint(pts[i-1]),cadPoint(pts[i]),{layerName:'ROUTE'});}
  drawingDimensions(layout).forEach((dim,i)=>{
   const a=cadPoint(dim.a),b=cadPoint(dim.b),length=Math.hypot(b.x-a.x,b.y-a.y);if(!length)return;const nx=-(b.y-a.y)/length,ny=(b.x-a.x)/length,offset=-dim.offset*1000,A=point3d(a.x+nx*offset,a.y+ny*offset),B=point3d(b.x+nx*offset,b.y+ny*offset),name='*D'+i,block=d.addBlock(name);
-  block.addLine(a,A);block.addLine(b,B);block.addLine(A,B);block.addText(point3d((A.x+B.x)/2,(A.y+B.y)/2+100),120,String(Math.round(length)));
+  block.addLine(a,A);block.addLine(b,B);block.addLine(A,B);for(const [P,Q]of [[A,B],[B,A]]){const ux=(Q.x-P.x)/length,uy=(Q.y-P.y)/length;for(const side of [-1,1])block.addLine(P,point3d(P.x+ux*100-uy*45*side,P.y+uy*100+ux*45*side));}block.addText(point3d((A.x+B.x)/2,(A.y+B.y)/2+100),120,String(Math.round(length)));
   d.addAlignedDim(a,b,{styleName:'WAREHOUSE_MM',blockName:block.name,definitionPoint:A,middlePoint:point3d((A.x+B.x)/2,(A.y+B.y)/2),ActualMeasurement:length,layerName:'DIMENSION'});
  });return d.stringify();
 }
-export function exportSVG(layout,{blueprint=false,labels=true}={}){
+export function exportSVG(layout,{blueprint=false,labels=true,textHeight=.22,dimensionTextHeight=.25}={}){
  const w=layout.warehouse.width,h=layout.warehouse.depth,ink=blueprint?'#bdeafb':'#243e50',bg=blueprint?'#0b2440':'#ffffff';
  const poly=o=>`<polygon points="${footprint(o).map(p=>p.x+','+p.y).join(' ')}" fill="${blueprint?'#143950':escape(o.color||'#cbd5dc')}" fill-opacity=".45" stroke="${ink}" stroke-width=".035"/>`;
- return `<svg xmlns="http://www.w3.org/2000/svg" width="${(w+4)*30}" height="${(h+4)*30}" viewBox="-2 -2 ${w+4} ${h+4}"><rect x="-2" y="-2" width="${w+4}" height="${h+4}" fill="${bg}"/><rect width="${w}" height="${h}" fill="none" stroke="${ink}" stroke-width=".06"/>${planObjects(layout).map(o=>poly(o)+(labels?`<text x="${o.x}" y="${o.y}" font-family="sans-serif" font-size=".22" fill="${ink}" text-anchor="middle">${escape(o.config?.text||o.name)}</text>`:'')).join('')}${drawingDimensions(layout).slice(0,80).map(({a,b,offset})=>{const length=Math.hypot(b.x-a.x,b.y-a.y),nx=-(b.y-a.y)/length*offset,ny=(b.x-a.x)/length*offset;return `<path d="M${a.x} ${a.y}l${nx} ${ny}L${b.x+nx} ${b.y+ny}L${b.x} ${b.y}" fill="none" stroke="${ink}" stroke-width=".025"/><text x="${(a.x+b.x)/2+nx}" y="${(a.y+b.y)/2+ny-.08}" font-family="sans-serif" font-size=".25" text-anchor="middle" fill="${ink}">${Math.round(length*1000)}</text>`;}).join('')}</svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="${(w+4)*30}" height="${(h+4)*30}" viewBox="-2 -2 ${w+4} ${h+4}"><rect x="-2" y="-2" width="${w+4}" height="${h+4}" fill="${bg}"/><rect width="${w}" height="${h}" fill="none" stroke="${ink}" stroke-width=".06"/>${planObjects(layout).map(o=>poly(o)+(labels?`<text x="${o.x}" y="${o.y}" font-family="sans-serif" font-size="${textHeight}" fill="${ink}" text-anchor="middle">${escape(o.config?.text||o.name)}</text>`:'')).join('')}${drawingDimensions(layout).slice(0,80).map(({a,b,offset})=>{const length=Math.hypot(b.x-a.x,b.y-a.y),nx=-(b.y-a.y)/length*offset,ny=(b.x-a.x)/length*offset;return `<path d="M${a.x} ${a.y}l${nx} ${ny}L${b.x+nx} ${b.y+ny}L${b.x} ${b.y}" fill="none" stroke="${ink}" stroke-width=".025"/><text x="${(a.x+b.x)/2+nx}" y="${(a.y+b.y)/2+ny-.08}" font-family="sans-serif" font-size="${dimensionTextHeight}" text-anchor="middle" fill="${ink}">${Math.round(length*1000)}</text>`;}).join('')}</svg>`;
 }
 export async function imageCanvas(svg){const blob=new Blob([svg],{type:'image/svg+xml'}),url=URL.createObjectURL(blob),image=new Image();try{image.src=url;await image.decode();const c=document.createElement('canvas');c.width=image.width;c.height=image.height;c.getContext('2d').drawImage(image,0,0);return c;}finally{URL.revokeObjectURL(url);}}
 export function download(data,name,type='application/octet-stream'){const url=URL.createObjectURL(data instanceof Blob?data:new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 /** Self-contained PDF containing a high-resolution report image. Text is raster, not editable PDF text. */
 export async function reportPDF(layout,{paper='A3',scale=100,author='',approver='',revision='',blueprint=false}={}){
  const mm=paper==='A4'?[297,210]:[420,297],px=5,c=document.createElement('canvas');c.width=mm[0]*px;c.height=mm[1]*px;const ctx=c.getContext('2d');ctx.fillStyle=blueprint?'#0b2440':'white';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle=blueprint?'#d9f6ff':'#19374b';ctx.font='bold 24px sans-serif';ctx.fillText(layout.projectName,50,55);ctx.font='16px sans-serif';
- const draw=await imageCanvas(exportSVG(layout,{blueprint})),dw=(layout.warehouse.width+4)*1000/scale*px,dh=(layout.warehouse.depth+4)*1000/scale*px;
+ const draw=await imageCanvas(exportSVG(layout,{blueprint,textHeight:scale*.0025,dimensionTextHeight:scale*.0025})),dw=(layout.warehouse.width+4)*1000/scale*px,dh=(layout.warehouse.depth+4)*1000/scale*px;
  if(dw>c.width-100||dh>c.height-320)throw Error('선택 축척에서 용지에 맞지 않습니다. A3 또는 더 작은 출력 축척을 선택하세요.');ctx.drawImage(draw,50,90,dw,dh);
  const cap=capacity(layout.objects),y=c.height-180;ctx.strokeStyle=ctx.fillStyle;ctx.strokeRect(50,y,c.width-100,135);const lines=[`축척 1:${scale} | 단위 mm | 개정 ${revision} | 날짜 ${new Date().toISOString().slice(0,10)}`,`작성자 ${author} | 승인자 ${approver}`,`설비 ${layout.objects.length}개 | 팔레트 위치 ${cap.palletPositions} | 박스 위치 ${cap.boxPositions} | 실제 적재 박스 ${layout.objects.reduce((n,o)=>n+(o.load?.boxes?.length||o.stack?.count|| (o.type==='box'?1:0)),0)}개`,`범례: 외곽 / 설비 실측 외곽 / 치수 · 안전 인증 도면이 아님`];lines.forEach((l,i)=>ctx.fillText(l,65,y+27+i*28));
  const pages=[c],loads=layout.objects.filter(o=>o.load?.boxes?.length),quantities=new Map();for(const o of layout.objects)quantities.set(o.type,(quantities.get(o.type)||0)+1);

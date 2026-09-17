@@ -70,7 +70,7 @@ export function loadAsset(o){
  // An independent load group prevents pallet scaling from scaling the boxes twice.
  const root=new THREE.Group();root.add(g);
  const transforms=(o.load?.boxes||[]).map(b=>new THREE.Matrix4().compose(new THREE.Vector3(b.x,b.z,b.y),new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),b.rotation*Math.PI/180),new THREE.Vector3(b.width/.6,b.height/.405,b.depth/.4)));
- if(transforms.length)staticInstances('box',transforms,root);return root;
+ if(transforms.length)staticInstances('box',transforms,root);root.userData.loadBoxIds=(o.load?.boxes||[]).map(b=>b.id);return root;
 }
 export function fitAsset(name,o){
  const g=asset(name);if(!g)return null;

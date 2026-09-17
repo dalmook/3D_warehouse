@@ -7,7 +7,7 @@
   ],
   "rackLocalWidth": 8000,
   "rackRotation": 45.0,
-  "dimensions": 10,
+  "dimensions": 11,
   "errors": 0,
   "fixes": 0,
   "viewer": "ezdxf SVG backend; AutoCAD/LibreCAD not tested"

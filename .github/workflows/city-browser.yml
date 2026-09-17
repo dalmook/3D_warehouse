@@ -45,6 +45,7 @@ jobs:
           node tests/stress.mjs
           node tests/classic.mjs
           node tests/practical-browser.mjs
+          node tests/groups-browser.mjs
           node tests/operations-browser.mjs
           node tests/shared-browser.mjs
       - name: Real GitHub save and load with temporary-branch cleanup
@@ -138,6 +139,7 @@ jobs:
           node tests/stress.mjs
           node tests/classic.mjs
           node tests/practical-browser.mjs
+          node tests/groups-browser.mjs
           node tests/operations-browser.mjs
           node tests/shared-browser.mjs
       - name: Verify real saving from the published origin
