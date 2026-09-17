@@ -1,8 +1,9 @@
+import {storageSlots,accessPoint} from './city-domain.mjs';
 import {copy,Navigation,blocked,segmentFree} from './city-core.mjs';
 export const STEP=.05;
 const moving=new Set(['worker','forklift']);
 export function qualityDemo(){
- return {schemaVersion:9,app:'Warehouse City',projectName:'스튜디오 01 · 입고에서 출하까지',warehouse:{width:20,depth:18,height:7},simulation:{speed:1.3,dwell:2},objects:[
+ return {schemaVersion:9,app:'Warehouse City',projectName:'스튜디오 01 · 입고에서 출하까지',warehouse:{width:20,depth:18,height:7},simulation:{speed:1.3,dwell:2},operations:{inbound:'inbound',outbound:'outbound',packing:'bench'},objects:[
   {id:'rack-a',type:'rack',name:'A · 팔레트 보관',x:6,y:6,width:7.8,depth:1.2,height:5.4,config:{bays:3,levels:3,palletsPerLevel:2}},
   {id:'rack-b',type:'rack',name:'B · 팔레트 보관',x:6,y:11,width:7.8,depth:1.2,height:5.4,config:{bays:3,levels:3,palletsPerLevel:2}},
   {id:'inbound',type:'dock',name:'입고 도크',x:15,y:1.5,width:3,depth:2.5,height:3.4},
@@ -25,28 +26,23 @@ export class Logistics {
  constructor(layout,{seed=42,units=6}={}){
   this.layout=copy(layout);this.time=0;this.steps=0;this.distance=0;this.arrivals=0;this.seed=seed>>>0;this.events=[];this.reservations=new Map();this.error='';this.units=[];
   this.navLayout={...this.layout,objects:this.layout.objects.filter(o=>!moving.has(o.type))};
-  const docks=layout.objects.filter(o=>o.type==='dock'),racks=layout.objects.filter(o=>o.type==='rack'),table=layout.objects.find(o=>o.type==='worktable');
+  const roles=layout.operations||{},inbound=layout.objects.find(o=>o.id===roles.inbound),outbound=layout.objects.find(o=>o.id===roles.outbound),table=layout.objects.find(o=>o.id===roles.packing);
   this.agents=layout.objects.filter(o=>moving.has(o.type)).slice(0,48).map((o,i)=>({...copy(o),radius:o.type==='forklift'?Math.hypot(o.width,o.depth)/2+.1:.32,heading:0,status:'대기',phase:'idle',distance:0,busy:0,waiting:0,path:[],step:1,cargo:null,index:i}));
   this.targets=[];
-  if(docks.length<2||!racks.length||!table||!this.agents.some(a=>a.type==='forklift')||!this.agents.some(a=>a.type==='worker')){this.error='입고/출하 도크 2개, 팔레트랙, 작업대, 지게차, 작업자가 필요합니다.';return;}
+  if(!inbound||!outbound||!this.agents.length){this.error='동선 설정에서 입고·출고 역할을 지정하고 작업자 또는 지게차를 배치하세요.';return;}
   const navCache=new Map();this.navs=new Map(this.agents.map(a=>{const key=a.type+':'+a.radius;if(!navCache.has(key))navCache.set(key,new Navigation({...this.navLayout,objects:this.navLayout.objects.map(o=>o.config?.allowed?.length&&!o.config.allowed.includes(a.type)?{...o,type:'partition',height:2}:o)},.5,a.radius));return [a.id,navCache.get(key)];}));
-  const access=(o,radius)=>{
-   const candidates=[{x:o.x,y:o.y+o.depth/2+radius+.3},{x:o.x,y:o.y-o.depth/2-radius-.3},{x:o.x+o.width/2+radius+.3,y:o.y},{x:o.x-o.width/2-radius-.3,y:o.y}];
-   return candidates.find(p=>!blocked(p.x,p.y,this.navLayout,radius));
-  };
-  const fr=Math.max(...this.agents.filter(a=>a.type==='forklift').map(a=>a.radius));
-  this.inbound=access(docks[0],fr);this.outbound=access(docks[1],.4);this.table=access(table,.4);
-  this.slots=racks.flatMap(r=>Array.from({length:(r.config?.bays||4)*(r.config?.levels||4)*(r.config?.palletsPerLevel||2)},(_,i)=>({id:r.id+':'+i,point:access(r,fr),rack:r.id,index:i,unit:null})));
-  if(!this.inbound||!this.outbound||!this.table||!this.slots.some(s=>s.point)){this.error='설비 앞 작업 공간이 막혔습니다. 통로 폭과 벽 이격을 확인하세요.';return;}
-  this.slots=this.slots.filter(s=>s.point);this.targets=[this.inbound,this.table,this.outbound,...this.slots.map(s=>s.point)];
-  for(const slot of this.slots){const rack=racks.find(r=>r.id===slot.rack),b=rack.config?.bays||4,n=rack.config?.palletsPerLevel||2,l=rack.config?.levels||4;const bay=Math.floor(slot.index/n)%b,level=Math.floor(slot.index/(n*b)),within=slot.index%n,x=-rack.width/2+(bay+(within+.5)/n)*rack.width/b,r=rack.rotation*Math.PI/180;slot.visual={x:rack.x+x*Math.cos(r),y:rack.y-x*Math.sin(r),z:.44+level*(rack.height-.3)/l};}
+  const fr=Math.max(...this.agents.map(a=>a.radius));
+  this.inbound=accessPoint(inbound,fr,this.navLayout);this.outbound=accessPoint(outbound,fr,this.navLayout);this.table=table?accessPoint(table,fr,this.navLayout):this.outbound;
+  this.slots=storageSlots(layout.objects,this.navLayout,fr).filter(s=>s.point);
+  if(!this.inbound||!this.outbound||!this.table||!this.slots.length){this.error='보관 슬롯 또는 설비 앞 작업 공간이 없습니다. 바닥 보관 구역·랙 및 통로를 확인하세요.';return;}
+  this.targets=[this.inbound,this.table,this.outbound,...this.slots.map(s=>s.point)];
   for(let i=0;i<Math.min(units,this.slots.length);i++){const slot=this.slots[i];slot.unit='unit-'+i;this.units.push({id:slot.unit,state:'inbound',owner:null,slot:slot.id,point:{...this.inbound},received:0,shipped:null});this.log('received',slot.unit);}
   this.received=this.units.length;
  }
  random(){this.seed=(1664525*this.seed+1013904223)>>>0;return this.seed/4294967296;}
  log(type,unit,agent=null){this.events.push({time:this.time,type,unit,agent});}
  assign(a){
-  const states=a.type==='forklift'?['inbound']:['stored','packed'];
+  const hasFork=this.agents.some(a=>a.type==='forklift'),hasWorker=this.agents.some(a=>a.type==='worker');const states=hasFork&&hasWorker?(a.type==='forklift'?['inbound']:['stored','packed']):['inbound','stored','packed'];
   const unit=this.units.find(u=>states.includes(u.state)&&!u.owner);if(!unit)return;
   const stage=unit.state==='inbound'?'putaway':unit.state==='stored'?'pick':'ship';
   const slot=this.slots.find(s=>s.id===unit.slot);

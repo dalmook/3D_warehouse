@@ -312,5 +312,16 @@
       "modifications": "Deterministic generated tile; seed 42",
       "colorSpace": "linear"
     }
+  ],
+  "outputDependencies": [
+    {
+      "id": "@tarikjabiri/dxf",
+      "version": "2.8.9",
+      "path": "vendor/dxf.mjs",
+      "author": "Tarik Jabiri and contributors",
+      "license": "MIT",
+      "source": "https://github.com/dxfjs/writer",
+      "modifications": "Unmodified published ESM build; no runtime CDN"
+    }
   ]
 }

@@ -1,4 +1,6 @@
+import {stackLayout} from './city-domain.mjs';
 import {validateBackground} from './city-design.mjs';
+import {ASSET_DEFINITIONS,TYPE_ALIASES} from './city-legacy-catalog.mjs';
 /** Warehouse City v9: deterministic layout, collision, navigation and simulation. Units: metres. */
 export const VERSION = 9;
 export const MAX_OBJECTS = 720;
@@ -23,36 +25,44 @@ export const CATALOG = {
 CATALOG.handpallet={name:'핸드 파레트',group:'작업',icon:'▰',width:.8,depth:1.6,height:1.15,color:'#eeae33'};
 CATALOG['plastic-pallet']={name:'플라스틱 팔레트',group:'보관',icon:'▰',width:1.2,depth:1,height:.16,color:'#245569'};
 CATALOG.column={name:'기둥',group:'시설',icon:'┃',width:.4,depth:.4,height:7,color:'#8a999f'};
+for(const [type,d] of Object.entries(ASSET_DEFINITIONS))if(!CATALOG[type]&&!TYPE_ALIASES[type])CATALOG[type]={...d,name:d.label,group:['shelf','stack'].includes(type)?'보관':'시설'};
+CATALOG.floorStorageZone={name:'바닥 보관 구역',group:'보관',icon:'▦',width:4,depth:3,height:.02,color:'#d5b64a',config:{slots:4}};
 export const copy = x => JSON.parse(JSON.stringify(x));
 export const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 const num = (v,f) => v !== null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : f;
 export const uid = () => globalThis.crypto?.randomUUID?.() || `o-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 export function object(type,x,y,extra={}) {
   const d = Object.hasOwn(CATALOG,type) ? CATALOG[type] : CATALOG.box;
-  return {...copy(d), type, id:uid(), x,y,z:0, rotation:0,locked:false,...extra};
+  const result={...copy(d), type, id:uid(), x,y,z:d.elevation||0, rotation:0,locked:false,...extra};
+  if(type==='stack'&&!result.stack&&!result.load){result.load=stackLayout({palletWidth:result.width,palletDepth:result.depth,palletHeight:.14,boxWidth:.4,boxDepth:.3,boxHeight:.25,maxHeight:1.8,count:36});result.height=result.load.totalHeight;}
+  return result;
 }
 export function normalize(raw) {
   if (!raw || typeof raw !== 'object' || !Array.isArray(raw.objects)) throw Error('도면 JSON에 objects 배열이 필요합니다.');
   if (raw.objects.length>MAX_OBJECTS) throw Error(`도면은 최대 ${MAX_OBJECTS}개 설비를 지원합니다.`);
-  if(raw.objects.filter(o=>o?.type==='worker').length>40)throw Error('작업자는 최대 40명입니다. 원본 도면은 유지됩니다.');
+  if(raw.objects.filter(o=>['worker','person'].includes(o?.type)).length>40)throw Error('작업자는 최대 40명입니다. 원본 도면은 유지됩니다.');
   if(raw.objects.filter(o=>['rack','boxrack','shelf'].includes(o?.type)).length>600)throw Error('랙은 최대 600개입니다.');
   if (num(raw.schemaVersion,1)>VERSION) throw Error('더 최신 버전의 도면입니다. 원본을 보존하고 앱을 업데이트하세요.');
   const w = raw.warehouse || {}, seen = new Set();
-  const warehouse = {width:clamp(num(w.width,36),10,200),depth:clamp(num(w.depth,24),10,200),height:clamp(num(w.height,9),3,30)};
+  const warehouse = {...copy(w),width:num(w.width,36),depth:num(w.depth,24),height:num(w.height,9)};
   const objects=raw.objects.map(o=>{
     if(!o || typeof o!=='object') throw Error('잘못된 설비 데이터입니다.');
-    const type=String(o.type || 'box').slice(0,40), def=Object.hasOwn(CATALOG,type) ? CATALOG[type] : CATALOG.box;
+    const originalType=String(o.type || 'box').slice(0,40),type=TYPE_ALIASES[originalType]||originalType, def=Object.hasOwn(CATALOG,type) ? CATALOG[type] : CATALOG.box;
     const id=typeof o.id==='string'&&!seen.has(o.id)?o.id:uid(); seen.add(id);
+    if(o.load?.boxes&&(!Array.isArray(o.load.boxes)||o.load.boxes.length>20000))throw Error('포함 박스는 설비당 20,000개까지 지원합니다. 원본을 보존하세요.');
     const config=copy(o.config && typeof o.config==='object' && !Array.isArray(o.config) ? o.config : def.config || {});
-    for(const k of ['bays','levels','palletsPerLevel','boxesPerCell']) if(k in config) config[k]=clamp(Math.round(num(config[k],1)),1,20);
-    return {...copy(o),id,type,name:String(o.name || def.name).slice(0,80),
-      x:clamp(num(o.x,warehouse.width/2),0,warehouse.width),y:clamp(num(o.y,warehouse.depth/2),0,warehouse.depth),
-      z:clamp(num(o.z ?? o.elevation,0),0,warehouse.height),
-      width:clamp(num(o.width,def.width),.05,200),depth:clamp(num(o.depth,def.depth),.05,200),height:clamp(num(o.height,def.height),.01,30),
+    for(const k of ['bays','levels','palletsPerLevel','boxesPerCell']) if(k in config) {const value=Number(config[k]);if(!Number.isSafeInteger(value)||value<1)throw Error(`${o.name||type}: ${k}는 양의 정수여야 합니다. 원본은 보존됩니다.`);config[k]=value;}
+    let load=o.load;
+    if(type==='stack'&&o.stack&&!load){const s=o.stack;load=stackLayout({palletWidth:s.palletWidth,palletDepth:s.palletDepth,palletHeight:s.palletHeight??.14,boxWidth:s.boxWidth,boxDepth:s.boxDepth,boxHeight:s.boxHeight,maxHeight:s.totalHeight||o.height,count:s.count,rotate:!!s.rotated});if(load.actual!==s.count)throw Error('기존 적재 수량이 규격과 맞지 않습니다. 원본을 보존하세요.');}
+    return {...copy(o),...(load?{load}:{}),id,type,name:String(o.name || def.name).slice(0,80),
+      ...(type!==originalType?{legacyType:o.legacyType||originalType}:{}),
+      x:num(o.x,warehouse.width/2),y:num(o.y,warehouse.depth/2),
+      z:num(o.z ?? o.elevation,def.elevation||0),
+      width:num(o.width,def.width)>0?num(o.width,def.width):.05,depth:num(o.depth,def.depth)>0?num(o.depth,def.depth):.05,height:num(o.height,def.height)>0?num(o.height,def.height):.01,
       rotation:((num(o.rotation,0)%360)+360)%360,color:/^#[0-9a-f]{6}$/i.test(o.color)?o.color:def.color,locked:!!o.locked,config};
   });
-  return {...(raw.background?{background:validateBackground(raw.background)}:{}),schemaVersion:VERSION,app:'Warehouse City',projectName:String(raw.projectName || '나의 물류센터').slice(0,80),warehouse,objects,
-    simulation:{speed:clamp(num(raw.simulation?.speed,1.3),.2,3),dwell:clamp(num(raw.simulation?.dwell,2),0,60)}};
+  return {...copy(raw),...(raw.background?{background:validateBackground(raw.background)}:{}),schemaVersion:VERSION,app:'Warehouse City',projectName:String(raw.projectName || '나의 물류센터').slice(0,80),warehouse,objects,
+    simulation:{...copy(raw.simulation||{}),speed:clamp(num(raw.simulation?.speed,1.3),.2,3),dwell:clamp(num(raw.simulation?.dwell,2),0,60)}};
 }
 export function demo() {
   const objects=[];
@@ -62,14 +72,14 @@ export function demo() {
   [0,1,2].forEach(i=>objects.push(object('worker',17+i,22,{name:`작업자 ${i+1}`})));
   return normalize({schemaVersion:9,projectName:'동선이 살아있는 물류센터',warehouse:{width:36,depth:24,height:9},objects});
 }
-const PASS = new Set(['aisle','safety','waypoint','worker','door','text','sign','warning']);
+const PASS = new Set(['aisle','safety','floorStorageZone','waypoint','worker','door','text','textlabel','sign','warning']);
 export const solid = o => (!PASS.has(o.type)||o.type==='door'&&o.config?.closed) && o.height>.08;
 export function footprint(o) {
   const r=o.rotation*Math.PI/180,c=Math.cos(r),s=Math.sin(r);
   return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,y])=>({x:o.x+x*o.width/2*c+y*o.depth/2*s,y:o.y-x*o.width/2*s+y*o.depth/2*c}));
 }
 export function overlap(a,b) {
-  if(a.z+a.height<=b.z+.001 || b.z+b.height<=a.z+.001) return false;
+  if(a.z+(a.load?.totalHeight||a.height)<=b.z+.001 || b.z+(b.load?.totalHeight||b.height)<=a.z+.001) return false;
   const A=footprint(a),B=footprint(b);
   for(const poly of [A,B]) for(let i=0;i<2;i++) {
     const p=poly[i],q=poly[i+1],axis={x:-(q.y-p.y),y:q.x-p.x};
@@ -78,7 +88,7 @@ export function overlap(a,b) {
   } return true;
 }
 export function placementError(o,layout) {
-  if(footprint(o).some(p=>p.x<0||p.y<0||p.x>layout.warehouse.width||p.y>layout.warehouse.depth)||o.z+o.height>layout.warehouse.height+.001) return '창고 경계 / 높이를 벗어납니다.';
+  if(footprint(o).some(p=>p.x<0||p.y<0||p.x>layout.warehouse.width||p.y>layout.warehouse.depth)||o.z+(o.load?.totalHeight||o.height)>layout.warehouse.height+.001) return '창고 경계 / 높이를 벗어납니다.';
   if(solid(o)&&layout.objects.some(p=>p.id!==o.id&&solid(p)&&overlap(o,p))) return '다른 설비와 겹칩니다.';
   return '';
 }
@@ -151,17 +161,18 @@ export class Simulation {
     this.layout=copy(layout);this.nav=new Navigation(this.layout);this.time=0;this.arrivals=0;this.distance=0;
     this.targets=this.layout.objects.filter(o=>o.type==='waypoint');
     this.agents=this.layout.objects.filter(o=>o.type==='worker').slice(0,40).map((o,i)=>({...o,target:i%Math.max(1,this.targets.length),path:[],step:0,wait:0,status:'준비',distance:0,heading:0}));
-    this.agents.forEach(a=>this.plan(a));
+    this.agents.forEach(a=>{const route=this.layout.routes?.find(r=>r.id===a.routeId);a.routeKind=route?.kind||'loop';a.targets=route?route.destinationIds.map(id=>this.layout.routePoints?.find(p=>p.id===id)).filter(Boolean):this.targets;a.target=0;a.direction=1;this.plan(a);});
+    this.targets=[...new Map(this.agents.flatMap(a=>a.targets).map(p=>[p.id,p])).values()];
   }
   plan(a){
-    if(!this.targets.length){a.status='목적지 없음';return;}
+    if(!a.targets.length){a.status='목적지 없음';return;}
     if(blocked(a.x,a.y,this.layout)){a.status='시작 위치 막힘';return;}
-    a.path=this.nav.path(a,this.targets[a.target]);a.step=1;a.status=a.path.length?'이동':'경로 없음';
+    a.path=this.nav.path(a,a.targets[a.target]);a.step=1;a.status=a.path.length?'이동':'경로 없음';
   }
   tick(dt){
     dt=clamp(dt,0,.2);this.time+=dt;
     for(const a of this.agents){
-      if(a.status==='작업 중'){a.wait-=dt;if(a.wait<=0){a.target=(a.target+1)%this.targets.length;this.plan(a);}continue;}
+      if(a.status==='작업 중'){a.wait-=dt;if(a.wait<=0){if(a.routeKind==='once'&&a.target===a.targets.length-1){a.status='완료';continue;}if(a.routeKind==='pingpong'&&(a.target+a.direction>=a.targets.length||a.target+a.direction<0))a.direction*=-1;a.target=(a.target+a.direction+a.targets.length)%a.targets.length;this.plan(a);}continue;}
       if(a.status!=='이동')continue;
       let remaining=this.layout.simulation.speed*dt;
       while(remaining>0&&a.step<a.path.length){
@@ -169,7 +180,7 @@ export class Simulation {
         if(d>.00001){a.x+=dx/d*move;a.y+=dy/d*move;a.heading=Math.atan2(dx,dy);a.distance+=move;this.distance+=move;}
         remaining-=move;if(d<=move+.00001)a.step++;else break;
       }
-      if(a.step>=a.path.length){a.status='작업 중';a.wait=this.layout.simulation.dwell;this.arrivals++;}
+      if(a.step>=a.path.length){a.status='작업 중';a.wait=a.targets[a.target]?.dwell??this.layout.simulation.dwell;this.arrivals++;}
     }
   }
 }

@@ -7,3 +7,5 @@ Three.js 0.185.0 (including GLTFLoader, SkeletonUtils, BufferGeometryUtils and R
 Blender 4.5.9 LTS: https://download.blender.org/release/Blender4.5/. Blender executable is not distributed in this repository. Blend sources are editable; GLB files are exported with mesh material and animation data.
 
 Playwright 1.55.0 is a development-only dependency, Apache-2.0, Microsoft, https://github.com/microsoft/playwright. Not shipped in the site.
+
+@tarikjabiri/dxf 2.8.9: Tarik Jabiri and contributors, MIT, https://github.com/dxfjs/writer. Browser ESM build copied to vendor/dxf.mjs without modifications; license in licenses/dxf-MIT.txt. Used for genuine DXF entities, not DWG conversion. ezdxf 1.4.3 (MIT, Manfred Moitzi) is validation tooling only, not shipped in the web app.
