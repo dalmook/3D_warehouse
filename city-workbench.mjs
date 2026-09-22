@@ -32,7 +32,6 @@ export function installWorkbench(api) {
  const catalog=el('section');catalog.id='wbCatalogPanel';catalog.setAttribute('role','tabpanel');
  catalog.append($('search'),$('category').closest('label'),$('catalog'));
  const noResults=el('p','wb-empty','검색 결과가 없습니다. 다른 설비 이름으로 검색하세요.');noResults.id='wbCatalogEmpty';noResults.hidden=true;catalog.append(noResults);
- new MutationObserver(()=>{noResults.hidden=$('catalog').children.length>0;}).observe($('catalog'),{childList:true});
  const automate=el('section');automate.id='wbAutomatePanel';automate.setAttribute('role','tabpanel');
  automate.append(el('h3','','반복 작업을 한 번에'),el('p','','미리보기에서 수량과 간격을 확인하고 배치하세요.'));
  const row=$('rowBtn');if(row)automate.append(row);
@@ -41,6 +40,7 @@ export function installWorkbench(api) {
  const project=el('section');project.id='wbProjectPanel';project.setAttribute('role','tabpanel');
  const start=oldSections[1];if(start){start.querySelector('h2').textContent='시작 · 가져오기';project.append(start);}
  library.append(tabs([['catalog','설비'],['automate','자동 배치'],['project','프로젝트']],'panel',goPanel),catalog,automate,project);
+ new MutationObserver(()=>{noResults.hidden=$('catalog').children.length>0;}).observe($('catalog'),{childList:true});
  $('modeTitle').textContent='공간을 설계하세요';$('modeDesc').textContent='설비 선택 후 바닥 클릭 · R 회전 · Esc 해제';
  goPanel('catalog');$('left').classList.remove('open');
  const actions=document.querySelector('.actions');
