@@ -1,3 +1,4 @@
+import {reveal} from './workbench-navigation.mjs';
 import {chromium} from 'playwright';
 import fs from 'node:fs/promises';
 const dir='qa-evidence/renewal';await fs.mkdir(dir,{recursive:true});
@@ -5,7 +6,7 @@ const browser=await chromium.launch({channel:'msedge'});
 const context=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:dir+'/video',size:{width:1440,height:900}}});
 const p=await context.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));p.on('dialog',d=>d.accept());
 await p.goto('http://127.0.0.1:4173');await p.waitForFunction(()=>window.__warehouseCity);
-await p.locator('#qualityDemo').click();await p.screenshot({path:dir+'/overview.png'});
+await (await reveal(p,'qualityDemo')).click();await p.screenshot({path:dir+'/overview.png'});
 await p.locator('#topBtn').click();await p.screenshot({path:dir+'/plan.png'});await p.locator('#isoBtn').click();
 await p.locator('[data-mode="sim"]').click();await p.locator('#operationKind').selectOption('tasks');await p.locator('#runBtn').click();await p.waitForTimeout(2000);
 await p.locator('[data-mode="walk"]').click();await p.screenshot({path:dir+'/interior.png'});

@@ -1,10 +1,11 @@
+import {reveal} from './workbench-navigation.mjs';
 import {chromium} from 'playwright';
 import fs from 'node:fs/promises';
 await fs.mkdir('qa-evidence/operation',{recursive:true});
 const b=await chromium.launch({channel:'msedge'}),c=await b.newContext({viewport:{width:1440,height:900},recordVideo:{dir:'qa-evidence/operation',size:{width:1440,height:900}}}),p=await c.newPage();
 p.on('dialog',d=>d.accept());
 await p.goto('http://127.0.0.1:4173');await p.waitForFunction(()=>window.__warehouseCity);
-await p.locator('#qualityDemo').click();await p.locator('[data-mode="sim"]').click();await p.locator('#operationKind').selectOption('tasks');await p.locator('#runBtn').click();
+await (await reveal(p,'qualityDemo')).click();await p.locator('[data-mode="sim"]').click();await p.locator('#operationKind').selectOption('tasks');await p.locator('#runBtn').click();
 await p.waitForFunction(()=>window.__warehouseCity.getLogistics().units.some(u=>u.state==='transport'));
 await p.locator('[data-mode="walk"]').click();await p.locator('#walkFov').fill('70');await p.locator('#walkFov').dispatchEvent('input');await p.locator('#viewpoint').selectOption('forklift');
 await p.waitForTimeout(4000);await p.locator('#viewpoint').selectOption('worker');await p.waitForTimeout(2500);

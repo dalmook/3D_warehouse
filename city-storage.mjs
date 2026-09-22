@@ -1,3 +1,20 @@
+/** Read the working copy independently of optional migration backups. */
+export function readSavedLayout({getStorage,key,normalize,fallback}){
+ let storage,saved;
+ try{storage=getStorage();saved=storage.getItem(key);}catch(e){return {layout:fallback(),autosaveBlocked:true,loadWarning:'브라우저 저장소에 접근할 수 없습니다. JSON으로 내보내 보관하세요. '+e.message};}
+ if(!saved)return {layout:fallback(),autosaveBlocked:false,loadWarning:''};
+ let layout;
+ try{layout=normalize(JSON.parse(saved));}catch(e){
+  try{storage.setItem(key+'-recovery-'+Date.now(),saved);}catch{}
+  return {layout:fallback(),autosaveBlocked:true,loadWarning:'저장 도면을 읽지 못했습니다. 기존 데이터는 보존했습니다. '+e.message};
+ }
+ let loadWarning='';
+ for(const suffix of ['-before-practical','-before-renewal']){
+  try{if(!storage.getItem(key+suffix))storage.setItem(key+suffix,saved);}catch{loadWarning='작업 도면을 불러왔지만 이전 버전 백업을 만들 공간이 부족합니다. JSON 백업을 다운로드하세요.';}
+ }
+ return {layout,autosaveBlocked:false,loadWarning};
+}
+
 /** Stateless Contents API transport. Tokens are read per request and never persisted. */
 export async function githubRequest(url,{token='',...options}={}){
  const parsed=new URL(url);if(parsed.origin!=='https://api.github.com')throw Error('GitHub API 주소를 확인하세요.');
