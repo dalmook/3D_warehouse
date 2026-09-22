@@ -1,3 +1,4 @@
+import {reveal,dismissWelcome} from './workbench-navigation.mjs';
 /** Regression: imports which previously built >200,000 separate meshes. */
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
@@ -12,7 +13,7 @@ const fixture=normalize({projectName:'QA 600 racks',warehouse:{width:200,depth:2
 async function load(layout){await p.locator('#importFile').setInputFiles({name:'qa-stress.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(layout))});await p.waitForFunction(n=>window.__warehouseCity.getLayout().projectName===n,layout.projectName,{timeout:30000});}
 async function check(name,fn){await fn();results.push({name,passed:true});console.log('STRESS PASS',name);}
 try{
- await p.goto(base);await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');
+ await p.goto(base);await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');await dismissWelcome(p);
  await check('600 racks render at 20 bays x 20 levels without changing saved data',async()=>{
   await load(fixture);const report=await p.evaluate(()=>window.__warehouseCity.getRenderStats());
   assert.equal(report.compact,true);assert.equal(report.meshes,600);assert.equal(report.instances,4800);
@@ -27,8 +28,8 @@ try{
   await p.screenshot({path:'qa-evidence/large-layout.png'});
  });
  await check('repeated rebuilds dispose instances and restore full-detail rendering',async()=>{
-  for(let i=0;i<2;i++){await p.locator('#blankBtn').click();assert.equal(await p.evaluate(()=>window.__warehouseCity.getRenderStats().instances),0);await load(fixture);}
-  await p.locator('#demoBtn').click();assert.equal(await p.evaluate(()=>window.__warehouseCity.getRenderStats().compact),false);
+  for(let i=0;i<2;i++){await (await reveal(p,'blankBtn')).click();assert.equal(await p.evaluate(()=>window.__warehouseCity.getRenderStats().instances),0);await load(fixture);}
+  await (await reveal(p,'demoBtn')).click();assert.equal(await p.evaluate(()=>window.__warehouseCity.getRenderStats().compact),false);
   await p.locator('#topBtn').click();await p.waitForTimeout(500);
   const xy=await p.evaluate(()=>window.__warehouseCity.screenPoint(8,5,6));await p.mouse.click(xy.x,xy.y);
   assert.equal(await p.locator('#inspector').isVisible(),true);

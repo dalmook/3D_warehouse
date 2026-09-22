@@ -1,3 +1,4 @@
+import {dismissWelcome} from './workbench-navigation.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||undefined,args:process.env.BROWSER_CHANNEL?[]:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
@@ -9,7 +10,7 @@ await p.route('https://api.github.com/repos/example/approved/**',async route=>{
  return route.fulfill({json:{content:Buffer.from(JSON.stringify(body)).toString('base64')}});
 });
 try{
- await p.goto(process.env.BASE_URL||'http://127.0.0.1:4173/');await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');await p.locator('#sharedSave').click();await p.locator('#sharedDialog summary').click();await p.locator('#sharedOwner').fill('example');await p.locator('#sharedRepo').fill('approved');await p.locator('#sharedApproved').check();await p.locator('#sharedConfigure').click();
+ await p.goto(process.env.BASE_URL||'http://127.0.0.1:4173/');await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');await dismissWelcome(p);await p.locator('#sharedSave').click();await p.locator('#sharedDialog summary').click();await p.locator('#sharedOwner').fill('example');await p.locator('#sharedRepo').fill('approved');await p.locator('#sharedApproved').check();await p.locator('#sharedConfigure').click();
  const event=p.waitForEvent('download');await p.locator('#sharedPrepare').click();const d=await event;file=d.suggestedFilename();const stream=await d.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);prepared=JSON.parse(Buffer.concat(chunks));
  await p.locator('#sharedCheck').click();await p.waitForFunction(()=>document.querySelector('#toast').textContent.includes('아직 업로드'));assert.match(await p.locator('#sharedStatus').innerText(),/미저장/);
  mode='private';await p.locator('#sharedCheck').click();await p.waitForFunction(()=>document.querySelector('#toast').textContent.includes('조회할 수 없습니다'));

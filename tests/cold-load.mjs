@@ -1,8 +1,9 @@
+import {dismissWelcome} from './workbench-navigation.mjs';
 import {chromium} from 'playwright';
 import fs from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const browser=await chromium.launch({channel:'msedge'}),p=await browser.newPage({viewport:{width:1920,height:1080}}),cdp=await p.context().newCDPSession(p);await cdp.send('Network.enable');await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
-const started=Date.now();await p.goto('http://127.0.0.1:4173');await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');
+const started=Date.now();await p.goto('http://127.0.0.1:4173');await p.waitForFunction(()=>document.documentElement.dataset.ready==='true');await dismissWelcome(p);
 const report={environment:'Local HTTP, no transport compression, empty browser context',usableMs:Date.now()-started,resources:await p.evaluate(()=>performance.getEntriesByType('resource').map(r=>({url:r.name,transfer:r.transferSize,encoded:r.encodedBodySize,decoded:r.decodedBodySize}))),assets:[]};
 for(const a of JSON.parse(await fs.readFile('assets/manifest.json')).assets){const r=await fetch('http://127.0.0.1:4173/'+a.path),b=Buffer.from(await r.arrayBuffer()),local=await fs.readFile(a.path);report.assets.push({path:a.path,status:r.status,mime:r.headers.get('content-type'),magic:b.toString('ascii',0,4),sha256:createHash('sha256').update(b).digest('hex'),identical:b.equals(local),bytes:b.length});}
 report.totalTransfer=report.resources.reduce((n,r)=>n+r.transfer,0);report.totalDecoded=report.resources.reduce((n,r)=>n+r.decoded,0);await fs.writeFile('qa-evidence/final/cold-load.json',JSON.stringify(report,null,2));console.log({usableMs:report.usableMs,transfer:report.totalTransfer,decoded:report.totalDecoded,assetsValid:report.assets.every(a=>a.status===200&&a.magic==='glTF'&&a.identical)});await browser.close();

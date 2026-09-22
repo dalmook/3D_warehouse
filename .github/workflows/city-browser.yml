@@ -49,6 +49,8 @@ jobs:
           node tests/operations-browser.mjs
           node tests/shared-browser.mjs
           node tests/ghost-browser.mjs
+          node tests/workbench-browser.mjs
+          node tests/fallback-browser.mjs
       - name: Real GitHub save and load with temporary-branch cleanup
         env:
           QA_GITHUB_TOKEN: ${{ github.token }}
@@ -102,7 +104,7 @@ jobs:
       - name: Assemble static website including saved layouts
         run: |
           mkdir _site
-          cp index.html city.html classic.html city-app.mjs city-render.mjs city-core.mjs city.css app.js boot.js objects.js styles.css .nojekyll _site/
+          cp index.html city.html classic.html city-app.mjs city-render.mjs city-core.mjs city.css city-workbench.css app.js boot.js objects.js styles.css .nojekyll _site/
           cp city-*.mjs _site/
           cp -r vendor licenses layouts _site/
           mkdir -p _site/assets
@@ -144,6 +146,8 @@ jobs:
           node tests/operations-browser.mjs
           node tests/shared-browser.mjs
           node tests/ghost-browser.mjs
+          node tests/workbench-browser.mjs
+          node tests/fallback-browser.mjs
       - name: Verify real saving from the published origin
         env:
           BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low

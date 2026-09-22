@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const base=process.env.BASE_URL,sha=process.env.GITHUB_SHA;
 if(!base||!sha)throw Error('Expected Pages URL and source commit');
-const files=['index.html','city.css','classic.html','objects.js','boot.js',...(await fs.readdir('.')).filter(f=>/^city-.*\.mjs$/.test(f))];
+const files=['index.html','city.css','city-workbench.css','classic.html','objects.js','boot.js',...(await fs.readdir('.')).filter(f=>/^city-.*\.mjs$/.test(f))];
 for(const dir of ['assets/models','assets/textures'])for(const file of await fs.readdir(dir))files.push(`${dir}/${file}`);
 files.push('assets/manifest.json','vendor/dxf.mjs');
 const hash=b=>createHash('sha256').update(b).digest('hex');
