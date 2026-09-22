@@ -20,6 +20,8 @@ jobs:
     outputs:
       pages_type: ${{ steps.pages.outputs.type }}
       pages_url: ${{ steps.pages.outputs.url }}
+    env:
+      BASE_URL: http://127.0.0.1:4173/?quality=low
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,26 +34,55 @@ jobs:
             node --input-type=module --check < "$f"
           done
       - name: Install Chromium
+        if: ${{ !cancelled() }}
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Software-rendered low-preset desktop, mobile, stress and classic checks
-        env:
-          BASE_URL: http://127.0.0.1:4173/?quality=low
+      - name: Start local static server
+        if: ${{ !cancelled() }}
         run: |
           mkdir -p qa-evidence
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/city-http.log 2>&1 &
-          node tests/browser.mjs
-          node tests/stress.mjs
-          node tests/classic.mjs
-          node tests/practical-browser.mjs
-          node tests/groups-browser.mjs
-          node tests/operations-browser.mjs
-          node tests/shared-browser.mjs
-          node tests/ghost-browser.mjs
-          node tests/workbench-browser.mjs
-          node tests/fallback-browser.mjs
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              exit 0
+            fi
+            sleep 0.2
+          done
+          cat /tmp/city-http.log
+          exit 1
+      - name: 'Local 01/10: Desktop and mobile browser'
+        if: ${{ !cancelled() }}
+        run: node tests/browser.mjs
+      - name: 'Local 02/10: Dense-layout stress'
+        if: ${{ !cancelled() }}
+        run: node tests/stress.mjs
+      - name: 'Local 03/10: Classic editor'
+        if: ${{ !cancelled() }}
+        run: node tests/classic.mjs
+      - name: 'Local 04/10: Practical tools'
+        if: ${{ !cancelled() }}
+        run: node tests/practical-browser.mjs
+      - name: 'Local 05/10: Group editing'
+        if: ${{ !cancelled() }}
+        run: node tests/groups-browser.mjs
+      - name: 'Local 06/10: Operations'
+        if: ${{ !cancelled() }}
+        run: node tests/operations-browser.mjs
+      - name: 'Local 07/10: Shared storage'
+        if: ${{ !cancelled() }}
+        run: node tests/shared-browser.mjs
+      - name: 'Local 08/10: Placement previews'
+        if: ${{ !cancelled() }}
+        run: node tests/ghost-browser.mjs
+      - name: 'Local 09/10: Workbench'
+        if: ${{ !cancelled() }}
+        run: node tests/workbench-browser.mjs
+      - name: 'Local 10/10: 2D fallback'
+        if: ${{ !cancelled() }}
+        run: node tests/fallback-browser.mjs
       - name: Real GitHub save and load with temporary-branch cleanup
+        if: ${{ success() }}
         env:
           QA_GITHUB_TOKEN: ${{ github.token }}
           BASE_URL: http://127.0.0.1:4173/?quality=low
@@ -131,24 +162,62 @@ jobs:
       - name: Verify published files against this exact commit
         run: node tests/deployed.mjs
       - name: Install Chromium
+        if: ${{ !cancelled() }}
         run: |
           npm install --no-save --ignore-scripts playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Repeat browser, dense-layout and classic checks on the published site
+      - name: 'Published 01/10: Desktop and mobile browser'
+        if: ${{ !cancelled() }}
         env:
           BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
-        run: |
-          node tests/browser.mjs
-          node tests/stress.mjs
-          node tests/classic.mjs
-          node tests/practical-browser.mjs
-          node tests/groups-browser.mjs
-          node tests/operations-browser.mjs
-          node tests/shared-browser.mjs
-          node tests/ghost-browser.mjs
-          node tests/workbench-browser.mjs
-          node tests/fallback-browser.mjs
+        run: node tests/browser.mjs
+      - name: 'Published 02/10: Dense-layout stress'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/stress.mjs
+      - name: 'Published 03/10: Classic editor'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/classic.mjs
+      - name: 'Published 04/10: Practical tools'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/practical-browser.mjs
+      - name: 'Published 05/10: Group editing'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/groups-browser.mjs
+      - name: 'Published 06/10: Operations'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/operations-browser.mjs
+      - name: 'Published 07/10: Shared storage'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/shared-browser.mjs
+      - name: 'Published 08/10: Placement previews'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/ghost-browser.mjs
+      - name: 'Published 09/10: Workbench'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/workbench-browser.mjs
+      - name: 'Published 10/10: 2D fallback'
+        if: ${{ !cancelled() }}
+        env:
+          BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
+        run: node tests/fallback-browser.mjs
       - name: Verify real saving from the published origin
+        if: ${{ success() }}
         env:
           BASE_URL: ${{ needs.browser.outputs.pages_url }}?quality=low
           QA_GITHUB_TOKEN: ${{ github.token }}

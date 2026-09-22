@@ -133,6 +133,72 @@ try{
   await page.screenshot({path:`${dir}/desktop-scenarios.png`});await page.locator('#wbScenarioDialogClose').click();
  });
 
+ await check('busy GitHub request keeps its dialog and token when Ctrl+K is pressed',async()=>{
+  const pattern='https://api.github.com/repos/**',token='workbench-qa-ephemeral-token';
+  let releaseLookup,puts=0,authorization;
+  const lookupGate=new Promise(resolve=>{releaseLookup=resolve;});
+  const handler=async route=>{
+   const request=route.request(),headers={'access-control-allow-origin':'*','access-control-allow-headers':'authorization,content-type,accept,x-github-api-version','access-control-allow-methods':'GET,PUT,OPTIONS'};
+   const reply=(status,body)=>route.fulfill({status,headers,contentType:'application/json',body:JSON.stringify(body)});
+   if(request.method()==='OPTIONS')return reply(200,{});
+   if(request.method()==='GET'){await lookupGate;return reply(404,{message:'Not Found'});}
+   if(request.method()==='PUT'){puts++;authorization=request.headers().authorization;return reply(201,{content:{sha:'qa-content-sha'},commit:{sha:'abcd1234'.padEnd(40,'0')}});}
+   return reply(405,{message:'Unexpected request method'});
+  };
+  await page.route(pattern,handler);
+  try{
+   await page.locator('#githubBtn').click();await page.locator('#ghOwner').fill('example');await page.locator('#ghRepo').fill('workbench-qa');
+   await page.locator('#ghBranch').fill('main');await page.locator('#ghPath').fill('layouts/workbench-qa.json');
+   await page.locator('#ghToken').fill(token);await page.locator('#ghConsent').check();
+   const lookup=page.waitForRequest(request=>request.url().startsWith('https://api.github.com/repos/')&&request.method()==='GET');
+   await page.locator('#ghSave').click();await lookup;
+   assert.equal(await page.locator('#ghSave').isDisabled(),true);
+   await page.keyboard.press('Control+k');
+   assert.equal(await page.locator('#githubDialog').isVisible(),true);
+   assert.equal(await page.locator('#wbCommandDialog').isVisible(),false);
+   assert.equal(await page.locator('#ghToken').inputValue(),token);
+   assert.equal(await page.locator('#ghConsent').isChecked(),true);
+   assert.match(await page.locator('#toast').textContent(),/GitHub 요청이 끝난 뒤/);
+   releaseLookup();await page.waitForFunction(()=>!document.getElementById('ghSave').disabled);
+   assert.match(await page.locator('#ghStatus').textContent(),/커밋 완료/);
+   assert.equal(puts,1);assert.equal(authorization,'Bearer '+token);
+   assert.equal(await page.evaluate(value=>JSON.stringify({...localStorage,...sessionStorage}).includes(value),token),false);
+   await page.locator('#ghClose').click();assert.equal(await page.locator('#ghToken').inputValue(),'');
+  }finally{
+   releaseLookup();await page.waitForFunction(()=>!document.getElementById('ghSave').disabled).catch(()=>{});
+   await page.unroute(pattern,handler);
+  }
+ });
+
+ await check('stale scenario dialog refuses another tab overwrite and refreshes on reopen',async()=>{
+  const key='warehouse-city-workbench-scenarios-v1';
+  await (await reveal(page,'wbScenarios')).click();
+  const initial=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)||'[]'),key),drawing=await state();
+  const second=await context.newPage();
+  try{
+   // A same-origin document gives the second tab its own storage view without another renderer.
+   await second.goto(new URL('city-core.mjs',base).href);
+   const changed=[...initial,{id:'second-tab-scenario',name:'다른 탭에서 보관한 안',date:'2026-09-22T00:00:00.000Z',layout:drawing}];
+   const serialized=JSON.stringify(changed);
+   await second.evaluate(({key,serialized})=>localStorage.setItem(key,serialized),{key,serialized});
+   await page.bringToFront();
+   await page.locator('#wbScenarioName').fill('충돌한 이전 탭 저장');await page.locator('#wbSaveScenario').click();
+   assert.match(await page.locator('#toast').textContent(),/다른 탭에서 설계안이 변경/);
+   assert.equal(await page.evaluate(key=>localStorage.getItem(key),key),serialized);
+   assert.equal(await page.locator('#wbScenarioList tbody tr').count(),initial.length+1);
+   await page.locator('#wbScenarioDialogClose').click();await (await reveal(page,'wbScenarios')).click();
+   assert.equal(await page.locator('#wbScenarioList tbody tr').count(),changed.length+1);
+   assert.equal(await page.locator('#wbScenarioList tbody tr').filter({hasText:'다른 탭에서 보관한 안'}).count(),1);
+   await page.locator('#wbScenarioName').fill('새 기록 확인 후 보관');await page.locator('#wbSaveScenario').click();
+   const stored=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
+   assert.equal(stored.length,changed.length+1);
+   assert.deepEqual(stored.slice(0,changed.length),changed);
+   assert.equal(stored.at(-1).name,'새 기록 확인 후 보관');
+   assert.deepEqual(await state(),drawing);
+   await page.locator('#wbScenarioDialogClose').click();
+  }finally{await second.close();}
+ });
+
  await check('blueprint theme survives an actual design rebuild',async()=>{
   await page.locator('#themeSelect').selectOption('blueprint');
   await (await reveal(page,'wbObjectSearch')).fill('현장 랙');await page.locator('[data-object-id="rack-a"]').click();
@@ -148,7 +214,10 @@ try{
  await check('mobile workflow keeps document and dialogs inside the viewport',async()=>{
   await page.goto(base);await ready(page);
   const fits=()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.body.scrollWidth<=innerWidth);
-  assert.equal(await fits(),true);await page.screenshot({path:`${dir}/mobile-workspace.png`});
+  assert.equal(await fits(),true);
+  const framing=await page.evaluate(()=>{const {warehouse:w}=window.__warehouseCity.getLayout(),r=document.getElementById('scene').getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,corners:[[0,0],[w.width,0],[0,w.depth],[w.width,w.depth]].map(([x,y])=>window.__warehouseCity.screenPoint(x,y))};});
+  assert.ok(framing.corners.every(p=>p.x>=framing.left&&p.x<=framing.right&&p.y>=framing.top&&p.y<=framing.bottom),'Initial mobile view must include all four warehouse corners');
+  await page.screenshot({path:`${dir}/mobile-workspace.png`});
   await (await reveal(page,'search')).fill('팔레트');
   assert.equal(await page.locator('#left').isVisible(),true);
   assert.ok(await page.locator('#catalog .asset').count()>=2);
